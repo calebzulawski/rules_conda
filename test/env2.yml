@@ -1,0 +1,7 @@
+name: env2
+channels:
+  - conda-forge
+dependencies:
+  - zsh
+platforms:
+  - linux-64

@@ -1,0 +1,16 @@
+module(name = "test")
+
+bazel_dep(name = "rules_conda")
+local_path_override(
+    module_name = "rules_conda",
+    path = "..",
+)
+
+conda = use_extension("@rules_conda//:extensions.bzl", "conda")
+
+conda.environment(name = "env1", lockfile = "//:conda.lock")
+conda.environment(name = "env2", lockfile = "//:conda.lock")
+use_repo(conda, "env1")
+use_repo(conda, "env2")
+use_repo(conda, "env1_packages")
+use_repo(conda, "env2_packages")
