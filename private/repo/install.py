@@ -1,12 +1,34 @@
+import asyncio
 import os
 import sys
-from rattler import LockFile
+import rattler
+from rattler import LockFile, Platform, RepoDataRecord
+from tempfile import TemporaryDirectory
+
+client = rattler.Client.authenticated_client()
 
 lock_path = sys.argv[1]
-run_install_scripts = bool(sys.argv[2])
-paths = dict(zip(sys.argv[3::2], sys.argv[4::2]))
+name = sys.argv[2]
+platform = Platform(sys.argv[3])
+execute_link_scripts = bool(sys.argv[4])
+paths = dict(zip(sys.argv[5::2], sys.argv[6::2]))
 
 lock = LockFile.from_path(lock_path)
-for path in paths.values():
-    print(path, file=sys.stderr)
-    assert os.path.exists(path)
+environment = lock.environment(name)
+records = environment.conda_repodata_records_for_platform(platform)
+records = [
+    RepoDataRecord(r, r.file_name, f"file://{paths[r.file_name]}", r.channel)
+    for r in records
+]
+print(records, file=sys.stderr)
+with TemporaryDirectory() as cache_dir:
+    asyncio.run(
+        rattler.install(
+            records,
+            os.getcwd(),
+            cache_dir=cache_dir,
+            platform=platform,
+            execute_link_scripts=execute_link_scripts,
+            client=client,
+        )
+    )

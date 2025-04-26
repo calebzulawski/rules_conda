@@ -1,4 +1,3 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 load("//private/repo:conda.bzl", "conda_environment")
 
 def _run_python(rctx, args):
@@ -12,6 +11,7 @@ def _check_result(result, error):
         fail("{}\n{}".format(result.stderr, error))
 
 def _parse_lockfile(mctx, lockfile):
+    mctx.watch(lockfile)
     parse_lockfile = Label("//private/repo:parse_lockfile.py")
     mctx.watch(parse_lockfile)
     result = _run_python(mctx, [parse_lockfile, lockfile, "environments.json"])
@@ -24,10 +24,25 @@ def _list_packages(environments):
         for packages in environment.values():
             for package in packages:
                 package = struct(**package)
-                if package.filename in all_packages and package.sha256 != all_packages[package.filename].sha256:
+                key = (package.subdir, package.filename)
+                if key in all_packages and package.sha256 != all_packages[key].sha256:
                     fail("found conda packages with mismatched sha256 hashes:\n{}\n{}".format(package.url, all_packages[package.filename].url))
-                all_packages[package.filename] = package
+                all_packages[key] = package
     return all_packages.values()
+
+def _download_impl(rctx):
+    rctx.download(rctx.attr.url, sha256 = rctx.attr.sha256, output = rctx.attr.subdir + "/" + rctx.attr.filename)
+    rctx.file("BUILD")
+
+_download = repository_rule(
+    implementation = _download_impl,
+    attrs = {
+        "url": attr.string(),
+        "sha256": attr.string(),
+        "filename": attr.string(),
+        "subdir": attr.string(),
+    },
+)
 
 def _install_impl(rctx):
     args = []
@@ -35,19 +50,22 @@ def _install_impl(rctx):
         args += [name, rctx.path(label)]
 
     install = Label("//private/repo:install.py")
-    result = _run_python(rctx, [install, rctx.attr.lockfile, str(rctx.attr.run_install_scripts)] + args)
+    rctx.watch(install)
+    result = _run_python(rctx, [install, rctx.attr.lockfile, rctx.attr.environment_name, rctx.attr.platform, str(rctx.attr.execute_link_scripts)] + args)
     _check_result(result, "couldn't create environment {}".format(rctx.attr.name))
     rctx.file("BUILD")
 
-def _package_repo_name(name):
-    return "package-" + name
+def _package_repo_name(filename, subdir):
+    return subdir + "-" + filename
 
 _install = repository_rule(
     implementation = _install_impl,
     attrs = {
         "lockfile": attr.label(),
+        "environment_name": attr.string(),
+        "platform": attr.string(),
         "packages": attr.string_keyed_label_dict(),
-        "run_install_scripts": attr.bool(),
+        "execute_link_scripts": attr.bool(),
     },
 )
 
@@ -65,10 +83,12 @@ def _conda(ctx):
                 lockfiles[name] = parse.lockfile
 
     for package in _list_packages(environments):
-        http_file(
-            name = _package_repo_name(package.filename),
+        _download(
+            name = _package_repo_name(package.filename, package.subdir),
             url = package.url,
             sha256 = package.sha256,
+            filename = package.filename,
+            subdir = package.subdir,
         )
 
     for name, environment in environments.items():
@@ -76,12 +96,14 @@ def _conda(ctx):
             if platform == "linux-64":  # FIXME detect host
                 _install(
                     name = name,
+                    environment_name = name,
+                    platform = "linux-64",
                     lockfile = lockfiles[name],
                     packages = {
-                        p["filename"]: "@{}//file:downloaded".format(_package_repo_name(p["filename"]))
+                        p["filename"]: "@{}//:{}/{}".format(_package_repo_name(p["filename"], p["subdir"]), p["subdir"], p["filename"])
                         for p in packages
                     },
-                    run_install_scripts = False,
+                    execute_link_scripts = False,
                 )
 
 conda = module_extension(
