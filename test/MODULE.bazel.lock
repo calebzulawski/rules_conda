@@ -143,34 +143,173 @@
   "moduleExtensions": {
     "@@rules_conda+//:extensions.bzl%conda": {
       "general": {
-        "bzlTransitiveDigest": "fwLKjqO6B2i1+IIX1bnEJdFue5CX9gczaNLcASnb9yI=",
-        "usagesDigest": "753QfEzwVNl6U02F8QuOgSKaby7tyaVG8vKoVLsxgd4=",
-        "recordedFileInputs": {},
+        "bzlTransitiveDigest": "nmgWcNUztJRMaT/Ps9+GMaWKq/srCWN5xcw1eezk5aQ=",
+        "usagesDigest": "Zy5nZoTyVvHY767x86tPbnGOnp0KnuzJ61Lox5+J15Y=",
+        "recordedFileInputs": {
+          "@@rules_conda+//private/repo/parse_lockfile.py": "4ffb1e2f6ac1f15b08ce7697d1e0b24af57b93c2e0a70ef03a12f1aa4c67d443"
+        },
         "recordedDirentsInputs": {},
         "envVariables": {},
         "generatedRepoSpecs": {
-          "env1_packages": {
-            "repoRuleId": "@@rules_conda+//private/repo:conda.bzl%_package_list",
+          "package-_libgcc_mutex-0.1-conda_forge.tar.bz2": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
             "attributes": {
-              "lockfile": "@@//:conda.lock"
+              "url": "https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2",
+              "sha256": "fe51de6107f9edc7aa4f786a70f4a883943bc9d39b3bb7307c04c41410990726"
+            }
+          },
+          "package-_openmp_mutex-4.5-2_gnu.tar.bz2": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-2_gnu.tar.bz2",
+              "sha256": "fbe2c5e56a653bebb982eda4876a9178aedfc2b545f25d0ce9c4c0b508253d22"
+            }
+          },
+          "package-bash-5.2.21-h7f99829_0.conda": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/linux-64/bash-5.2.21-h7f99829_0.conda",
+              "sha256": "7543ca8fc7941974cb012b2ff8d842ff83e0365ff21bd2c7fdbbd468511b6f80"
+            }
+          },
+          "package-libgcc-14.2.0-h77fa898_1.conda": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/linux-64/libgcc-14.2.0-h77fa898_1.conda",
+              "sha256": "53eb8a79365e58849e7b1a068d31f4f9e718dc938d6f2c03e960345739a03569"
+            }
+          },
+          "package-libgcc-ng-14.2.0-h69a702a_1.conda": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/linux-64/libgcc-ng-14.2.0-h69a702a_1.conda",
+              "sha256": "3a76969c80e9af8b6e7a55090088bc41da4cffcde9e2c71b17f44d37b7cb87f7"
+            }
+          },
+          "package-libgomp-14.2.0-h77fa898_1.conda": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/linux-64/libgomp-14.2.0-h77fa898_1.conda",
+              "sha256": "1911c29975ec99b6b906904040c855772ccb265a1c79d5d75c8ceec4ed89cd63"
+            }
+          },
+          "package-ncurses-6.5-h59595ed_0.conda": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/linux-64/ncurses-6.5-h59595ed_0.conda",
+              "sha256": "4fc3b384f4072b68853a0013ea83bdfd3d66b0126e2238e1d6e1560747aa7586"
+            }
+          },
+          "package-readline-8.2-h8c095d6_2.conda": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/linux-64/readline-8.2-h8c095d6_2.conda",
+              "sha256": "2d6d0c026902561ed77cd646b5021aef2d4db22e57a5b0178dfc669231e06d2c"
+            }
+          },
+          "package-bash-5.2.21-h15d410d_0.conda": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/osx-arm64/bash-5.2.21-h15d410d_0.conda",
+              "sha256": "ad71dd36a037d0294e4e93b2f32596a25604e16edf874022a8092babd4fd6bc1"
+            }
+          },
+          "package-ncurses-6.5-hb89a1cb_0.conda": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/osx-arm64/ncurses-6.5-hb89a1cb_0.conda",
+              "sha256": "87d7cf716d9d930dab682cb57b3b8d3a61940b47d6703f3529a155c938a6990a"
+            }
+          },
+          "package-readline-8.2-h1d1bf99_2.conda": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/osx-arm64/readline-8.2-h1d1bf99_2.conda",
+              "sha256": "7db04684d3904f6151eff8673270922d31da1eea7fa73254d01c437f49702e34"
+            }
+          },
+          "package-libstdcxx-14.2.0-hc0a3c3a_1.conda": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-14.2.0-hc0a3c3a_1.conda",
+              "sha256": "4661af0eb9bdcbb5fb33e5d0023b001ad4be828fccdcc56500059d56f9869462"
+            }
+          },
+          "package-libstdcxx-ng-14.2.0-h4852527_1.conda": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-ng-14.2.0-h4852527_1.conda",
+              "sha256": "25bb30b827d4f6d6f0522cc0579e431695503822f144043b93c50237017fffd8"
+            }
+          },
+          "package-pcre-8.45-h9c3ff4c_0.tar.bz2": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/linux-64/pcre-8.45-h9c3ff4c_0.tar.bz2",
+              "sha256": "8f35c244b1631a4f31fb1d66ab6e1d9bfac0ca9b679deced1112c7225b3ad138"
+            }
+          },
+          "package-zsh-5.9-h30626fc_2.conda": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "https://conda.anaconda.org/conda-forge/linux-64/zsh-5.9-h30626fc_2.conda",
+              "sha256": "92a4f7fde79a7645e92a02611748b48c94783e23b6dffec9e66d5be51bfccded"
             }
           },
           "env1": {
-            "repoRuleId": "@@rules_conda+//private/repo:conda.bzl%_install",
-            "attributes": {}
-          },
-          "env2_packages": {
-            "repoRuleId": "@@rules_conda+//private/repo:conda.bzl%_package_list",
+            "repoRuleId": "@@rules_conda+//:extensions.bzl%_install",
             "attributes": {
-              "lockfile": "@@//:conda.lock"
+              "lockfile": "@@//:conda.lock",
+              "packages": {
+                "_libgcc_mutex-0.1-conda_forge.tar.bz2": "@@rules_conda++conda+package-_libgcc_mutex-0.1-conda_forge.tar.bz2//file:downloaded",
+                "_openmp_mutex-4.5-2_gnu.tar.bz2": "@@rules_conda++conda+package-_openmp_mutex-4.5-2_gnu.tar.bz2//file:downloaded",
+                "bash-5.2.21-h7f99829_0.conda": "@@rules_conda++conda+package-bash-5.2.21-h7f99829_0.conda//file:downloaded",
+                "libgcc-14.2.0-h77fa898_1.conda": "@@rules_conda++conda+package-libgcc-14.2.0-h77fa898_1.conda//file:downloaded",
+                "libgcc-ng-14.2.0-h69a702a_1.conda": "@@rules_conda++conda+package-libgcc-ng-14.2.0-h69a702a_1.conda//file:downloaded",
+                "libgomp-14.2.0-h77fa898_1.conda": "@@rules_conda++conda+package-libgomp-14.2.0-h77fa898_1.conda//file:downloaded",
+                "ncurses-6.5-h59595ed_0.conda": "@@rules_conda++conda+package-ncurses-6.5-h59595ed_0.conda//file:downloaded",
+                "readline-8.2-h8c095d6_2.conda": "@@rules_conda++conda+package-readline-8.2-h8c095d6_2.conda//file:downloaded"
+              },
+              "run_install_scripts": false
             }
           },
           "env2": {
-            "repoRuleId": "@@rules_conda+//private/repo:conda.bzl%_install",
-            "attributes": {}
+            "repoRuleId": "@@rules_conda+//:extensions.bzl%_install",
+            "attributes": {
+              "lockfile": "@@//:conda.lock",
+              "packages": {
+                "_libgcc_mutex-0.1-conda_forge.tar.bz2": "@@rules_conda++conda+package-_libgcc_mutex-0.1-conda_forge.tar.bz2//file:downloaded",
+                "_openmp_mutex-4.5-2_gnu.tar.bz2": "@@rules_conda++conda+package-_openmp_mutex-4.5-2_gnu.tar.bz2//file:downloaded",
+                "libgcc-14.2.0-h77fa898_1.conda": "@@rules_conda++conda+package-libgcc-14.2.0-h77fa898_1.conda//file:downloaded",
+                "libgcc-ng-14.2.0-h69a702a_1.conda": "@@rules_conda++conda+package-libgcc-ng-14.2.0-h69a702a_1.conda//file:downloaded",
+                "libgomp-14.2.0-h77fa898_1.conda": "@@rules_conda++conda+package-libgomp-14.2.0-h77fa898_1.conda//file:downloaded",
+                "libstdcxx-14.2.0-hc0a3c3a_1.conda": "@@rules_conda++conda+package-libstdcxx-14.2.0-hc0a3c3a_1.conda//file:downloaded",
+                "libstdcxx-ng-14.2.0-h4852527_1.conda": "@@rules_conda++conda+package-libstdcxx-ng-14.2.0-h4852527_1.conda//file:downloaded",
+                "ncurses-6.5-h59595ed_0.conda": "@@rules_conda++conda+package-ncurses-6.5-h59595ed_0.conda//file:downloaded",
+                "pcre-8.45-h9c3ff4c_0.tar.bz2": "@@rules_conda++conda+package-pcre-8.45-h9c3ff4c_0.tar.bz2//file:downloaded",
+                "zsh-5.9-h30626fc_2.conda": "@@rules_conda++conda+package-zsh-5.9-h30626fc_2.conda//file:downloaded"
+              },
+              "run_install_scripts": false
+            }
           }
         },
-        "recordedRepoMappingEntries": []
+        "recordedRepoMappingEntries": [
+          [
+            "rules_conda+",
+            "bazel_tools",
+            "bazel_tools"
+          ],
+          [
+            "rules_conda+",
+            "pypi_311_py_rattler",
+            "rules_python++pip+pypi_311_py_rattler"
+          ],
+          [
+            "rules_conda+",
+            "python_3_11_host",
+            "rules_python++python+python_3_11_host"
+          ]
+        ]
       }
     },
     "@@rules_kotlin+//src/main/starlark/core/repositories:bzlmod_setup.bzl%rules_kotlin_extensions": {
