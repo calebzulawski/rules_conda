@@ -1,16 +1,19 @@
 load("//private/repo:conda.bzl", "conda_environment")
 
 def _run_python(rctx, args):
+    "Run Python in a repository_rule context with rattler"
     return rctx.execute(
         [Label("@python_3_11_host//:bin/python3")] + args,
         environment = {"PYTHONPATH": str(rctx.path(Label("@pypi_311_py_rattler//:site-packages")))},
     )
 
 def _check_result(result, error):
+    "Fail on exec error"
     if result.return_code != 0:
         fail("{}\n{}".format(result.stderr, error))
 
 def _parse_lockfile(mctx, lockfile):
+    "Parse a conda lockfile and return the contained environments"
     mctx.watch(lockfile)
     parse_lockfile = Label("//private/repo:parse_lockfile.py")
     mctx.watch(parse_lockfile)
@@ -19,6 +22,7 @@ def _parse_lockfile(mctx, lockfile):
     return json.decode(mctx.read("environments.json"))
 
 def _list_packages(environments):
+    "Return the list of unique packages across all environments"
     all_packages = {}
     for environment in environments.values():
         for packages in environment.values():
@@ -30,9 +34,32 @@ def _list_packages(environments):
                 all_packages[key] = package
     return all_packages.values()
 
+def _package_repo_name(filename, subdir):
+    "Create a valid repository name for a conda package"
+    return subdir + "-" + filename
+
 def _download_impl(rctx):
     rctx.download(rctx.attr.url, sha256 = rctx.attr.sha256, output = rctx.attr.subdir + "/" + rctx.attr.filename)
     rctx.file("BUILD")
+
+def _host_platform(mctx):
+    if mctx.os.name.startswith("linux"):
+        return "linux-" + {
+            "x86": "32",
+            "amd64": "64",
+            "arm": "armv7l",
+        }.get(mctx.os.arch, default = mctx.os.arch)
+    if mctx.os.name.startswith("mac os"):
+        return "osx-" + {
+            "amd64": "64",
+            "aarch64": "arm64",
+        }[mctx.os.arch]
+    if mctx.os.name.startswith("windows"):
+        return "win-" + {
+            "x86": "32",
+            "amd64": "64",
+        }.get(mctx.os.arch, default = mctx.os.arch)
+    return None
 
 _download = repository_rule(
     implementation = _download_impl,
@@ -55,9 +82,6 @@ def _install_impl(rctx):
     _check_result(result, "couldn't create environment {}".format(rctx.attr.name))
     rctx.file("BUILD")
 
-def _package_repo_name(filename, subdir):
-    return subdir + "-" + filename
-
 _install = repository_rule(
     implementation = _install_impl,
     attrs = {
@@ -72,6 +96,7 @@ _install = repository_rule(
 _parse = tag_class(attrs = {"lockfile": attr.label()})
 
 def _conda(ctx):
+    # Parse all lockfiles, obtaining all environments
     lockfiles = {}
     environments = {}
     for mod in ctx.modules:
@@ -82,6 +107,7 @@ def _conda(ctx):
                 environments[name] = environment
                 lockfiles[name] = parse.lockfile
 
+    # Download all packages used across environments
     for package in _list_packages(environments):
         _download(
             name = _package_repo_name(package.filename, package.subdir),
@@ -91,20 +117,35 @@ def _conda(ctx):
             subdir = package.subdir,
         )
 
+    # Install environments
+    host_platform = _host_platform(ctx)
     for name, environment in environments.items():
         for platform, packages in environment.items():
-            if platform == "linux-64":  # FIXME detect host
+            packages = {
+                p["filename"]: "@{}//:{}/{}".format(_package_repo_name(p["filename"], p["subdir"]), p["subdir"], p["filename"])
+                for p in packages
+            }
+            _install(
+                name = name + "-" + platform,
+                environment_name = name,
+                platform = platform,
+                lockfile = lockfiles[name],
+                packages = packages,
+                execute_link_scripts = False,
+            )
+            if platform == host_platform:
                 _install(
                     name = name,
                     environment_name = name,
-                    platform = "linux-64",
+                    platform = platform,
                     lockfile = lockfiles[name],
-                    packages = {
-                        p["filename"]: "@{}//:{}/{}".format(_package_repo_name(p["filename"], p["subdir"]), p["subdir"], p["filename"])
-                        for p in packages
-                    },
+                    packages = packages,
                     execute_link_scripts = False,
                 )
+
+    return ctx.extension_metadata(
+        reproducible = True,
+    )
 
 conda = module_extension(
     implementation = _conda,
