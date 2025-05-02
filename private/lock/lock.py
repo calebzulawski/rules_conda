@@ -4,7 +4,7 @@ import rattler
 import sys
 import yaml
 
-lockfile_path = sys.argv[1]
+lockfile_path = os.path.realpath(sys.argv[1])
 environment_paths = sys.argv[2:]
 
 
@@ -13,7 +13,7 @@ async def solve():
     gateway = rattler.Gateway(client=client)
 
     locked_envs = {}
-    if os.path.isfile(lockfile_path):
+    if os.path.getsize(lockfile_path) != 0:
         lockfile = rattler.LockFile.from_path(lockfile_path)
         locked_envs = dict(lockfile.environments())
 

@@ -9,3 +9,5 @@ py_binary(
         requirement("pyyaml"),
     ],
 )
+
+exports_files(["update.sh"])

@@ -1,8 +1,22 @@
-load("@rules_conda//:lockfile.bzl", "generate_conda_lockfile")
+load("@rules_conda//:lockfile.bzl", "lock_environments")
 
-generate_conda_lockfile(
+lock_environments(
     name = "lockfile",
-    packages = {
-        "
-    }
+    environments = [
+        "env1.yml",
+        "env2.yml",
+    ],
+)
+
+sh_test(
+    name = "env_test",
+    srcs = ["test.sh"],
+    data = [
+        "@env1//:bin/bash",
+        "@env2//:bin/zsh",
+    ],
+    env = {
+        "BASH": "$(rootpath @env1//:bin/bash)",
+        "ZSH": "$(rootpath @env2//:bin/zsh)",
+    },
 )

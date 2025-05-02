@@ -1,5 +1,3 @@
-load("//private/repo:conda.bzl", "conda_environment")
-
 def _run_python(rctx, args):
     "Run Python in a repository_rule context with rattler"
     return rctx.execute(
@@ -77,10 +75,12 @@ def _install_impl(rctx):
         args += [name, rctx.path(label)]
 
     install = Label("//private/repo:install.py")
+    template = Label("//private/repo:template.BUILD")
     rctx.watch(install)
+    rctx.watch(template)
     result = _run_python(rctx, [install, rctx.attr.lockfile, rctx.attr.environment_name, rctx.attr.platform, str(rctx.attr.execute_link_scripts)] + args)
     _check_result(result, "couldn't create environment {}".format(rctx.attr.name))
-    rctx.file("BUILD")
+    rctx.file("BUILD", rctx.read(template))
 
 _install = repository_rule(
     implementation = _install_impl,
