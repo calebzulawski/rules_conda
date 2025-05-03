@@ -93,12 +93,15 @@ _install = repository_rule(
     },
 )
 
-_environment = tag_class(attrs = {
-    "name": attr.string(mandatory = True),
-    "lockfile": attr.label(mandatory = True),
-    "execute_link_scripts": attr.bool(default = False),
-    "repo_name": attr.string(),
-})
+_environment = tag_class(
+    attrs = {
+        "name": attr.string(mandatory = True, doc = "The name of the Conda environment."),
+        "lockfile": attr.label(mandatory = True, doc = "The lockfile containing the environment."),
+        "execute_link_scripts": attr.bool(default = False, doc = "Whether link scripts should be executed when installing the environment. Only applies to the host platform."),
+        "repo_name": attr.string(doc = "The name of the repo to create. Uses the environment name if not specified."),
+    },
+    doc = "Create a Conda environment",
+)
 
 def _conda(ctx):
     # Parse all lockfiles, obtaining all environments
@@ -163,4 +166,5 @@ def _conda(ctx):
 conda = module_extension(
     implementation = _conda,
     tag_classes = {"environment": _environment},
+    doc = "Create Conda environments",
 )

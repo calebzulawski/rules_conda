@@ -33,6 +33,14 @@ def lock_environments(
         name = None,
         environments = [],
         lockfile = "conda.lock"):
+    """
+    Lock Conda environments.
+
+    Args:
+      name: The name of this rule
+      environments: A list of environment files, in YAML format
+      lockfile: The lockfile to create
+    """
     _update_lockfile(
         name = name + ".update",
         lockfile = lockfile,
