@@ -93,19 +93,32 @@ _install = repository_rule(
     },
 )
 
-_parse = tag_class(attrs = {"lockfile": attr.label()})
+_environment = tag_class(attrs = {
+    "name": attr.string(mandatory = True),
+    "lockfile": attr.label(mandatory = True),
+    "execute_link_scripts": attr.bool(default = False),
+    "repo_name": attr.string(),
+})
 
 def _conda(ctx):
     # Parse all lockfiles, obtaining all environments
-    lockfiles = {}
     environments = {}
+    cfgs = {}
     for mod in ctx.modules:
-        for parse in mod.tags.parse:
-            for name, environment in _parse_lockfile(ctx, parse.lockfile).items():
-                if name in environments:
-                    fail("an environment `{}` already exists (`{}`)".format(name, parse.lockfile))
-                environments[name] = environment
-                lockfiles[name] = parse.lockfile
+        for cfg in mod.tags.environment:
+            repo_name = cfg.repo_name
+            if repo_name == "":
+                repo_name = cfg.name
+
+            if repo_name in cfgs:
+                fail("error creating environment `{}` from `{}`\nthe named environment already exists (`{}`)".format(cfg.repo_name, cfg.lockfile, cfgs[repo_name].lockfile))
+
+            cfgs[repo_name] = cfg
+
+            locked = _parse_lockfile(ctx, cfg.lockfile)
+            if cfg.name not in locked:
+                fail("environment `{}` doesn't exist in `{}`".format(cfg.name, cfg.lockfile))
+            environments[repo_name] = locked[cfg.name]
 
     # Download all packages used across environments
     for package in _list_packages(environments):
@@ -129,16 +142,16 @@ def _conda(ctx):
                 name = name + "-" + platform,
                 environment_name = name,
                 platform = platform,
-                lockfile = lockfiles[name],
+                lockfile = cfgs[name].lockfile,
                 packages = packages,
-                execute_link_scripts = False,
+                execute_link_scripts = cfgs[name].execute_link_scripts,
             )
             if platform == host_platform:
                 _install(
                     name = name,
                     environment_name = name,
                     platform = platform,
-                    lockfile = lockfiles[name],
+                    lockfile = cfgs[name].lockfile,
                     packages = packages,
                     execute_link_scripts = False,
                 )
@@ -149,5 +162,5 @@ def _conda(ctx):
 
 conda = module_extension(
     implementation = _conda,
-    tag_classes = {"parse": _parse},
+    tag_classes = {"environment": _environment},
 )

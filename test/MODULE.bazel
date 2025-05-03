@@ -7,7 +7,8 @@ local_path_override(
 )
 
 conda = use_extension("@rules_conda//:extensions.bzl", "conda")
-conda.parse(lockfile = "//:conda.lock")
+conda.environment(name = "env1", lockfile = "//:conda.lock")
+conda.environment(name = "env2", lockfile = "//:conda.lock")
 
 # Host platform repos
 use_repo(conda, "env1")
