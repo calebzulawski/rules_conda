@@ -1,7 +1,10 @@
 def _run_python(rctx, args):
     "Run Python in a repository_rule context with rattler"
+    extension = ""
+    if rctx.os.name.startswith("windows"):
+        extension = ".exe"
     return rctx.execute(
-        [Label("@python_3_11_host//:bin/python3")] + args,
+        [Label("@python_3_11_host//:bin/python3" + extension)] + args,
         environment = {"PYTHONPATH": str(rctx.path(Label("@pypi_311_py_rattler//:site-packages")))},
     )
 
