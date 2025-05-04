@@ -22,7 +22,5 @@ jobs:
           repository-cache: false
       - name: Check formatting
         run: bazel run format.check
-      - name: Test rules_conda
-        run: bazel test //...
-      - name: Test example
-        run: cd example && bazel test //...
+      - name: Run tests
+        run: cd test && bazel test //...
