@@ -48,17 +48,20 @@ def _host_platform(mctx):
         return "linux-" + {
             "x86": "32",
             "amd64": "64",
+            "x86_64": "64",
             "arm": "armv7l",
         }.get(mctx.os.arch, default = mctx.os.arch)
     if mctx.os.name.startswith("mac os"):
         return "osx-" + {
             "amd64": "64",
+            "x86_64": "64",
             "aarch64": "arm64",
         }[mctx.os.arch]
     if mctx.os.name.startswith("windows"):
         return "win-" + {
             "x86": "32",
             "amd64": "64",
+            "x86_64": "64",
         }.get(mctx.os.arch, default = mctx.os.arch)
     return None
 
