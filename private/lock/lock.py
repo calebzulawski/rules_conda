@@ -11,6 +11,7 @@ mode = sys.argv[1]
 lockfile_path = os.path.realpath(sys.argv[2])
 environment_paths = sys.argv[3:]
 
+
 async def solve():
     with tempfile.TemporaryDirectory() as cache_dir:
         client = rattler.Client.authenticated_client()
@@ -44,6 +45,7 @@ async def solve():
                 )
         return environments
 
+
 def make_lockfile():
     environments = asyncio.run(solve())
 
@@ -65,6 +67,7 @@ def make_lockfile():
             for name, environment in environments.items()
         }
     )
+
 
 if mode == "update":
     make_lockfile().to_path(lockfile_path)
