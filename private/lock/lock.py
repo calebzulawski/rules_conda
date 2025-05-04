@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import difflib
 import filecmp
 import os
 import rattler
@@ -100,6 +101,18 @@ elif mode == "test":
     with tempfile.NamedTemporaryFile() as tmp:
         make_lockfile().to_path(tmp.name)
         if not filecmp.cmp(tmp.name, lockfile_path, shallow=False):
+            with open(lockfile_path) as f:
+                actual = list(f)
+            with open(tmp.name) as f:
+                want = list(f)
+            sys.stderr.writelines(
+                difflib.unified_diff(
+                    actual,
+                    want,
+                    fromfile="actual",
+                    tofile="want",
+                )
+            )
             sys.exit(1)
 else:
     assert False
