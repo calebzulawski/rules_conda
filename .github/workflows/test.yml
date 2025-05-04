@@ -10,7 +10,7 @@ jobs:
         - ubuntu-24.04-arm
         - macos-13
         - macos-15
-    runs-on: {? {matrix.runs-on: ''} : ''}
+    runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v4
       - uses: bazel-contrib/setup-bazel@0.14.0
