@@ -1,0 +1,27 @@
+name: Test
+on:
+  push:
+jobs:
+  test:
+    matrix:
+      runs-on:
+        - ubuntu-24.04
+        - windows-2025
+        - ubuntu-24.04-arm
+        - macos-13
+        - macos-15
+    runs-on: {? {matrix.runs-on: ''} : ''}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bazel-contrib/setup-bazel@0.14.0
+        with:
+          module-root: bazel/test
+          bazelisk-cache: true
+          disk-cache: false
+          repository-cache: false
+      - name: Check formatting
+        run: bazel run format.check
+      - name: Test rules_conda
+        run: bazel test //...
+      - name: Test example
+        run: cd example && bazel test //...
