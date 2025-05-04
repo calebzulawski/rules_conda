@@ -2,7 +2,7 @@ name: Test
 on:
   push:
 jobs:
-  check formatting:
+  check_formatting:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
