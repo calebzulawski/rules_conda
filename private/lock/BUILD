@@ -10,4 +10,4 @@ py_binary(
     ],
 )
 
-exports_files(["update.sh"])
+exports_files(["lock.sh"])

@@ -1,3 +1,0 @@
-#!/bin/sh
-
-${LOCK} ${LOCKFILE} ${ENVIRONMENTS}
