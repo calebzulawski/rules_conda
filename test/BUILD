@@ -14,12 +14,24 @@ lock_environments(
 sh_test(
     name = "env_test",
     srcs = ["test.sh"],
-    data = [
-        "@env1//:bin/python3",
-        "@env2//:bin/vim",
-    ],
-    env = {
-        "PYTHON": "$(rootpath @env1//:bin/python3)",
-        "VIM": "$(rootpath @env2//:bin/vim)",
-    },
+    data = select({
+        "@platforms//os:windows": [
+            "@env1//:python.exe",
+            "@env2//:vim.exe",
+        ],
+        "//conditions:default": [
+            "@env1//:bin/python3",
+            "@env2//:bin/vim",
+        ],
+    }),
+    env = select({
+        "@platforms//os:windows": {
+            "PYTHON": "$(rootpath @env1//:python.exe)",
+            "VIM": "$(rootpath @env2//:vim.exe)",
+        },
+        "//conditions:default": {
+            "PYTHON": "$(rootpath @env1//:bin/python3)",
+            "VIM": "$(rootpath @env2//:bin/vim)",
+        },
+    }),
 )
