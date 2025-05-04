@@ -26,12 +26,13 @@ sh_test(
     }),
     env = select({
         "@platforms//os:windows": {
-            "PYTHON": "$(rootpath @env1//:python.exe)",
-            "VIM": "$(rootpath @env2//:Library/bin/vim.exe)",
+            "PYTHON": "$(rlocationpath @env1//:python.exe)",
+            "VIM": "$(rlocationpath @env2//:Library/bin/vim.exe)",
         },
         "//conditions:default": {
-            "PYTHON": "$(rootpath @env1//:bin/python3)",
-            "VIM": "$(rootpath @env2//:bin/vim)",
+            "PYTHON": "$(rlocationpath @env1//:bin/python3)",
+            "VIM": "$(rlocationpath @env2//:bin/vim)",
         },
     }),
+    deps = ["@bazel_tools//tools/bash/runfiles"],
 )

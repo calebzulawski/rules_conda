@@ -1,5 +1,5 @@
 def _location(ctx, target):
-    return ctx.expand_location('"$(rootpath {})"'.format(target.label), targets = [target])
+    return ctx.expand_location('"$(rlocation $(rlocationpath {}))"'.format(target.label), targets = [target])
 
 def _lockfile_impl(ctx):
     update_script = ctx.actions.declare_file(ctx.attr.name)
@@ -23,7 +23,7 @@ def _lockfile_impl(ctx):
         is_executable = True,
     )
     return DefaultInfo(
-        runfiles = ctx.runfiles(files = ctx.files.environments + ctx.files.lockfile).merge(ctx.attr._lock_script[DefaultInfo].default_runfiles),
+        runfiles = ctx.runfiles(files = ctx.files.environments + ctx.files.lockfile + ctx.files._runfiles).merge(ctx.attr._lock_script[DefaultInfo].default_runfiles),
         executable = update_script,
     )
 
@@ -35,6 +35,7 @@ common_attrs = {
     "glibc_version": attr.string(),
     "_template": attr.label(default = "//private/lock:lock.sh", allow_single_file = True),
     "_lock_script": attr.label(default = "//private/lock", executable = True, cfg = "exec"),
+    "_runfiles": attr.label(default = "@bazel_tools//tools/bash/runfiles"),
 }
 
 _lockfile_update = rule(
