@@ -2,5 +2,5 @@
 
 set -eux
 
-$BASH --version
-$ZSH --version
+$PYTHON --version
+$VIM --version

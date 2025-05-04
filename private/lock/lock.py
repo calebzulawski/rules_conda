@@ -12,6 +12,30 @@ lockfile_path = os.path.realpath(sys.argv[2])
 environment_paths = sys.argv[3:]
 
 
+def virtual_packages(platform):
+    platform = rattler.Platform(platform)
+    packages = []
+    default = lambda name: rattler.GenericVirtualPackage(
+        rattler.PackageName(name), rattler.Version("0"), "0"
+    )
+    override = lambda name, var: rattler.GenericVirtualPackage(
+        rattler.PackageName(name), rattler.Version(os.environ[var]), "0"
+    )
+    if platform.is_linux:
+        packages.append(default("__linux"))
+    if platform.is_unix:
+        packages.append(default("__unix"))
+    if platform.is_windows:
+        packages.append(default("__win"))
+    if "CONDA_OVERRIDE_CUDA" in os.environ and not platform.is_osx:
+        packages.append(override("__cuda", "CONDA_OVERRIDE_CUDA"))
+    if "CONDA_OVERRIDE_OSX" in os.environ and platform.is_osx:
+        packages.append(override("__osx", "CONDA_OVERRIDE_OSX"))
+    if "CONDA_OVERRIDE_GLIBC" in os.environ and platform.is_linux:
+        packages.append(override("__glibc", "CONDA_OVERRIDE_GLIBC"))
+    return packages
+
+
 async def solve():
     with tempfile.TemporaryDirectory() as cache_dir:
         client = rattler.Client.authenticated_client()
@@ -42,6 +66,7 @@ async def solve():
                     platforms=[platform, "noarch"],
                     gateway=gateway,
                     locked_packages=locked_packages,
+                    virtual_packages=virtual_packages(platform),
                 )
         return environments
 

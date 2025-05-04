@@ -2,8 +2,10 @@ name: env1
 channels:
   - conda-forge
 dependencies:
-  - bash
+  - python
 platforms:
   - linux-64
   - linux-aarch64
+  - osx-64
   - osx-arm64
+  - win-64
