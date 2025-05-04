@@ -1,8 +1,11 @@
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
 def _location(ctx, target):
     return ctx.expand_location('"$(rlocation $(rlocationpath {}))"'.format(target.label), targets = [target])
 
 def _lockfile_impl(ctx):
-    update_script = ctx.actions.declare_file(ctx.attr.name)
+    script = ctx.actions.declare_file(ctx.attr.name)
     overrides = []
     if ctx.attr.cuda_version:
         overrides.append("export CONDA_OVERRIDE_CUDA={}".format(ctx.attr.cuda_version))
@@ -12,46 +15,31 @@ def _lockfile_impl(ctx):
         overrides.append("export CONDA_OVERRIDE_GLIBC={}".format(ctx.attr.glibc_version))
     ctx.actions.expand_template(
         template = ctx.file._template,
-        output = update_script,
+        output = script,
         substitutions = {
             "${OVERRIDES}": "\n".join(overrides),
             "${LOCK}": _location(ctx, ctx.attr._lock_script),
-            "${MODE}": "test" if ctx.attr._test else "update",
+            "${MODE}": ctx.attr.mode,
             "${LOCKFILE}": _location(ctx, ctx.attr.lockfile),
             "${ENVIRONMENTS}": " ".join([_location(ctx, env) for env in ctx.attr.environments]),
         },
         is_executable = True,
     )
-    return DefaultInfo(
-        runfiles = ctx.runfiles(files = ctx.files.environments + ctx.files.lockfile + ctx.files._runfiles).merge(ctx.attr._lock_script[DefaultInfo].default_runfiles),
-        executable = update_script,
-    )
+    return DefaultInfo(files = depset([script]))
 
-common_attrs = {
-    "lockfile": attr.label(allow_single_file = True),
-    "environments": attr.label_list(mandatory = True, allow_files = True),
-    "cuda_version": attr.string(),
-    "macos_version": attr.string(),
-    "glibc_version": attr.string(),
-    "_template": attr.label(default = "//private/lock:lock.sh", allow_single_file = True),
-    "_lock_script": attr.label(default = "//private/lock", executable = True, cfg = "exec"),
-    "_runfiles": attr.label(default = "@bazel_tools//tools/bash/runfiles"),
-}
-
-_lockfile_update = rule(
+_lockfile = rule(
     implementation = _lockfile_impl,
-    attrs = common_attrs | {
-        "_test": attr.bool(default = False),
+    attrs = {
+        "lockfile": attr.label(allow_single_file = True),
+        "environments": attr.label_list(mandatory = True, allow_files = True),
+        "cuda_version": attr.string(),
+        "macos_version": attr.string(),
+        "glibc_version": attr.string(),
+        "mode": attr.string(),
+        "_template": attr.label(default = "//private/lock:lock.sh", allow_single_file = True),
+        "_lock_script": attr.label(default = "//private/lock", executable = True, cfg = "exec"),
+        "_runfiles": attr.label(default = "@bazel_tools//tools/bash/runfiles"),
     },
-    executable = True,
-)
-
-_lockfile_test = rule(
-    implementation = _lockfile_impl,
-    attrs = common_attrs | {
-        "_test": attr.bool(default = True),
-    },
-    test = True,
 )
 
 def lock_environments(
@@ -76,19 +64,33 @@ def lock_environments(
       macos_version: The macOS version to use to solve
       glibc_version: The glibc version to use to solve
     """
-    _lockfile_update(
-        name = name + ".update",
+    _lockfile(
+        name = name + ".impl.update",
         lockfile = lockfile,
+        mode = "update",
         environments = environments,
         cuda_version = cuda_version,
         macos_version = macos_version,
         glibc_version = glibc_version,
     )
-    _lockfile_test(
-        name = name + ".test",
+    _lockfile(
+        name = name + ".impl.test",
         lockfile = lockfile,
+        mode = "test",
         environments = environments,
         cuda_version = cuda_version,
         macos_version = macos_version,
         glibc_version = glibc_version,
+    )
+    sh_binary(
+        name = name + ".update",
+        srcs = [name + ".impl.update"],
+        deps = ["@bazel_tools//tools/bash/runfiles"],
+        data = [lockfile, Label("//private/lock")] + environments,
+    )
+    sh_test(
+        name = name + ".test",
+        srcs = [name + ".impl.test"],
+        deps = ["@bazel_tools//tools/bash/runfiles"],
+        data = [lockfile, Label("//private/lock")] + environments,
     )
