@@ -17,7 +17,7 @@ sh_test(
     data = select({
         "@platforms//os:windows": [
             "@env1//:python.exe",
-            "@env2//:vim.exe",
+            "@env2//:Library/bin/vim.exe",
         ],
         "//conditions:default": [
             "@env1//:bin/python3",
@@ -27,7 +27,7 @@ sh_test(
     env = select({
         "@platforms//os:windows": {
             "PYTHON": "$(rootpath @env1//:python.exe)",
-            "VIM": "$(rootpath @env2//:vim.exe)",
+            "VIM": "$(rootpath @env2//:Library/bin/vim.exe)",
         },
         "//conditions:default": {
             "PYTHON": "$(rootpath @env1//:bin/python3)",
