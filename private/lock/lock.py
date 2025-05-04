@@ -101,11 +101,11 @@ elif mode == "test":
     # use delete=False to allow it to be opened and closed multiple times on windows
     with tempfile.NamedTemporaryFile(delete=os.name != "nt") as tmp:
         make_lockfile().to_path(tmp.name)
-        if not filecmp.cmp(tmp.name, lockfile_path, shallow=False):
-            with open(lockfile_path) as f:
-                actual = list(f)
-            with open(tmp.name) as f:
-                want = list(f)
+        with open(lockfile_path) as f:
+            actual = list(f)
+        with open(tmp.name) as f:
+            want = list(f)
+        if actual != want:
             sys.stderr.writelines(
                 difflib.unified_diff(
                     actual,
