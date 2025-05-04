@@ -99,7 +99,7 @@ if mode == "update":
     make_lockfile().to_path(lockfile_path)
 elif mode == "test":
     # use delete=False to allow it to be opened and closed multiple times on windows
-    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(delete=os.name != "nt") as tmp:
         make_lockfile().to_path(tmp.name)
         if not filecmp.cmp(tmp.name, lockfile_path, shallow=False):
             with open(lockfile_path) as f:
@@ -114,8 +114,6 @@ elif mode == "test":
                     tofile="want",
                 )
             )
-            os.remove(tmp.name)
             sys.exit(1)
-        os.remove(tmp.name)
 else:
     assert False
