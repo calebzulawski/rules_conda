@@ -5,6 +5,10 @@ format_multirun(
     python = "@aspect_rules_lint//format:ruff",
     shell = "@aspect_rules_lint//format:shfmt",
     starlark = "@buildifier_prebuilt//:buildifier",
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     visibility = ["//:__pkg__"],
     yaml = "@aspect_rules_lint//format:yamlfmt",
 )
