@@ -1,5 +1,15 @@
-load("@aspect_rules_lint//format:defs.bzl", "format_multirun")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+
+alias(
+    name = "format",
+    actual = "//tools:format",
+)
+
+alias(
+    name = "format.check",
+    actual = "//tools:format.check",
+)
 
 compile_pip_requirements(
     name = "requirements",
@@ -7,10 +17,20 @@ compile_pip_requirements(
     requirements_txt = "requirements_lock.txt",
 )
 
-format_multirun(
-    name = "format",
-    python = "@aspect_rules_lint//format:ruff",
-    shell = "@aspect_rules_lint//format:shfmt",
-    starlark = "@buildifier_prebuilt//:buildifier",
-    yaml = "@aspect_rules_lint//format:yamlfmt",
+exports_files(
+    glob(["*.bzl"]),
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "extensions",
+    srcs = ["extensions.bzl"],
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "lockfile",
+    srcs = ["lockfile.bzl"],
+    visibility = ["//visibility:public"],
+    deps = ["@rules_shell//shell:rules_bzl"],
 )

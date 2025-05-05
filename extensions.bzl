@@ -1,3 +1,5 @@
+""" Module extensions for loading Conda environments. """
+
 def _run_python(rctx, args):
     "Run Python in a repository_rule context with rattler"
     path = "bin/python3"
