@@ -4,11 +4,13 @@ load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 alias(
     name = "format",
     actual = "//tools:format",
+    tag = ["manual"],
 )
 
 alias(
     name = "format.check",
     actual = "//tools:format.check",
+    tag = ["manual"],
 )
 
 compile_pip_requirements(
