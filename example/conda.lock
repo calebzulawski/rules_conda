@@ -448,6 +448,7 @@ packages:
   - __glibc >=2.17,<3.0.a0
   - libgcc >=13
   license: GPL-3.0-or-later
+  license_family: GPL
   size: 3129801
   timestamp: 1746228937647
 - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/gettext-tools-0.24.1-h5ad3122_0.conda
@@ -456,6 +457,7 @@ packages:
   depends:
   - libgcc >=13
   license: GPL-3.0-or-later
+  license_family: GPL
   size: 3530002
   timestamp: 1746228795208
 - conda: https://conda.anaconda.org/conda-forge/osx-64/gettext-tools-0.24.1-h27064b9_0.conda
@@ -466,6 +468,7 @@ packages:
   - libiconv >=1.18,<2.0a0
   - libintl 0.24.1 h27064b9_0
   license: GPL-3.0-or-later
+  license_family: GPL
   size: 3148456
   timestamp: 1746229461238
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/gettext-tools-0.24.1-h493aca8_0.conda
@@ -476,6 +479,7 @@ packages:
   - libiconv >=1.18,<2.0a0
   - libintl 0.24.1 h493aca8_0
   license: GPL-3.0-or-later
+  license_family: GPL
   size: 3100065
   timestamp: 1746229361943
 - conda: https://conda.anaconda.org/conda-forge/win-64/gettext-tools-0.22.5-h5a7288d_3.conda
@@ -773,6 +777,7 @@ packages:
   - __glibc >=2.17,<3.0.a0
   - libgcc >=13
   license: GPL-3.0-or-later
+  license_family: GPL
   size: 171165
   timestamp: 1746228870846
 - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libgettextpo-0.24.1-h5ad3122_0.conda
@@ -781,6 +786,7 @@ packages:
   depends:
   - libgcc >=13
   license: GPL-3.0-or-later
+  license_family: GPL
   size: 217039
   timestamp: 1746228750642
 - conda: https://conda.anaconda.org/conda-forge/osx-64/libgettextpo-0.24.1-h27064b9_0.conda
@@ -791,6 +797,7 @@ packages:
   - libiconv >=1.18,<2.0a0
   - libintl 0.24.1 h27064b9_0
   license: GPL-3.0-or-later
+  license_family: GPL
   size: 192819
   timestamp: 1746229371415
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libgettextpo-0.24.1-h493aca8_0.conda
@@ -801,6 +808,7 @@ packages:
   - libiconv >=1.18,<2.0a0
   - libintl 0.24.1 h493aca8_0
   license: GPL-3.0-or-later
+  license_family: GPL
   size: 176982
   timestamp: 1746229282723
 - conda: https://conda.anaconda.org/conda-forge/win-64/libgettextpo-0.22.5-h5728263_3.conda
@@ -821,6 +829,7 @@ packages:
   - libgcc >=13
   - libgettextpo 0.24.1 h5888daf_0
   license: GPL-3.0-or-later
+  license_family: GPL
   size: 37234
   timestamp: 1746228897993
 - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libgettextpo-devel-0.24.1-h5ad3122_0.conda
@@ -830,6 +839,7 @@ packages:
   - libgcc >=13
   - libgettextpo 0.24.1 h5ad3122_0
   license: GPL-3.0-or-later
+  license_family: GPL
   size: 37390
   timestamp: 1746228765836
 - conda: https://conda.anaconda.org/conda-forge/osx-64/libgettextpo-devel-0.24.1-h27064b9_0.conda
@@ -841,6 +851,7 @@ packages:
   - libiconv >=1.18,<2.0a0
   - libintl 0.24.1 h27064b9_0
   license: GPL-3.0-or-later
+  license_family: GPL
   size: 37612
   timestamp: 1746229398938
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libgettextpo-devel-0.24.1-h493aca8_0.conda
@@ -852,6 +863,7 @@ packages:
   - libiconv >=1.18,<2.0a0
   - libintl 0.24.1 h493aca8_0
   license: GPL-3.0-or-later
+  license_family: GPL
   size: 37636
   timestamp: 1746229306213
 - conda: https://conda.anaconda.org/conda-forge/win-64/libgettextpo-devel-0.22.5-h5728263_3.conda
