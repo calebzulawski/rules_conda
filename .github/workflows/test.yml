@@ -34,5 +34,7 @@ jobs:
           repository-cache: false
       - name: Run tests
         run: bazel test --test_output=errors //... -- -//tools/...
+        shell: bash
       - name: Run example module tests
         run: cd example && bazel test --test_output=errors //...
+        shell: bash
