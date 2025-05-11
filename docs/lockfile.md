@@ -1,34 +1,34 @@
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
-Module extensions for loading Conda environments.
+Rules for creating lockfiles.
 
-<a id="conda"></a>
+<a id="lock_environments"></a>
 
-## conda
+## lock_environments
 
 <pre>
-conda = use_extension("@rules_conda//:extensions.bzl", "conda")
-conda.environment(<a href="#conda.environment-name">name</a>, <a href="#conda.environment-execute_link_scripts">execute_link_scripts</a>, <a href="#conda.environment-lockfile">lockfile</a>, <a href="#conda.environment-repo_name">repo_name</a>)
+load("@rules_conda//:lockfile.bzl", "lock_environments")
+
+lock_environments(<a href="#lock_environments-name">name</a>, <a href="#lock_environments-environments">environments</a>, <a href="#lock_environments-lockfile">lockfile</a>, <a href="#lock_environments-cuda_version">cuda_version</a>, <a href="#lock_environments-macos_version">macos_version</a>, <a href="#lock_environments-glibc_version">glibc_version</a>)
 </pre>
 
-Create Conda environments
+Lock Conda environments.
+
+Creates two targets:
+* `bazel run [name].update` to update the lockfile
+* `bazel test [name].test` to ensure the lockfile is up-to-date
 
 
-**TAG CLASSES**
+**PARAMETERS**
 
-<a id="conda.environment"></a>
 
-### environment
-
-Create a Conda environment
-
-**Attributes**
-
-| Name  | Description | Type | Mandatory | Default |
-| :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="conda.environment-name"></a>name |  The name of the Conda environment.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="conda.environment-execute_link_scripts"></a>execute_link_scripts |  Whether link scripts should be executed when installing the environment. Only applies to the host platform.   | Boolean | optional |  `False`  |
-| <a id="conda.environment-lockfile"></a>lockfile |  The lockfile containing the environment.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
-| <a id="conda.environment-repo_name"></a>repo_name |  The name of the repo to create. Uses the environment name if not specified.   | String | optional |  `""`  |
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="lock_environments-name"></a>name |  The name of this rule   |  `None` |
+| <a id="lock_environments-environments"></a>environments |  A list of environment files, in YAML format   |  `[]` |
+| <a id="lock_environments-lockfile"></a>lockfile |  The lockfile to create   |  `"conda.lock"` |
+| <a id="lock_environments-cuda_version"></a>cuda_version |  The CUDA version to use to solve   |  `None` |
+| <a id="lock_environments-macos_version"></a>macos_version |  The macOS version to use to solve   |  `None` |
+| <a id="lock_environments-glibc_version"></a>glibc_version |  The glibc version to use to solve   |  `None` |
 
 

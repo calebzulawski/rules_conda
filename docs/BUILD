@@ -7,7 +7,7 @@ stardoc_with_diff_test(
 
 stardoc_with_diff_test(
     name = "lockfile",
-    bzl_library_target = "//:extensions",
+    bzl_library_target = "//:lockfile",
 )
 
 update_docs(name = "update")
