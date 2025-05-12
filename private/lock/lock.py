@@ -54,11 +54,11 @@ async def solve():
             for platform in env["platforms"]:
                 locked_packages = []
                 if env["name"] in locked_envs and platform in [
-                    str(p) in locked_envs[env["name"]].platforms()
+                    str(p) for p in locked_envs[env["name"]].platforms()
                 ]:
-                    locked_packages = locked_envs[env["name"]].packages(
-                        rattler.Platform(platform)
-                    )
+                    locked_packages = locked_envs[
+                        env["name"]
+                    ].conda_repodata_records_for_platform(rattler.Platform(platform))
                 environments.setdefault(env["name"], {})[
                     rattler.Platform(platform)
                 ] = await rattler.solve(
