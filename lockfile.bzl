@@ -50,7 +50,10 @@ def lock_environments(
         lockfile = "conda.lock",
         cuda_version = None,
         macos_version = None,
-        glibc_version = None):
+        glibc_version = None,
+        visibility = ["//visibility:private"],
+        tags = [],
+        **kwargs):
     """
     Lock Conda environments.
 
@@ -65,6 +68,9 @@ def lock_environments(
       cuda_version: The CUDA version to use to solve
       macos_version: The macOS version to use to solve
       glibc_version: The glibc version to use to solve
+      visibility: passed to both .update and .test
+      tags: passed to both .update and .test
+      **kwargs: additional arguments passed to .test
     """
     _lockfile(
         name = name + ".impl.update",
@@ -89,10 +95,15 @@ def lock_environments(
         srcs = [name + ".impl.update"],
         deps = ["@bazel_tools//tools/bash/runfiles"],
         data = [lockfile, Label("//private/lock")] + environments,
+        visibility = visibility,
+        tags = tags,
     )
     sh_test(
         name = name + ".test",
         srcs = [name + ".impl.test"],
         deps = ["@bazel_tools//tools/bash/runfiles"],
         data = [lockfile, Label("//private/lock")] + environments,
+        visibility = visibility,
+        tags = tags,
+        **kwargs
     )

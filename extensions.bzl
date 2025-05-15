@@ -24,18 +24,16 @@ def _parse_lockfile(mctx, lockfile):
     _check_result(result, "couldn't parse lockfile {}".format(lockfile))
     return json.decode(mctx.read("environments.json"))
 
-def _list_packages(environments):
+def _unique_packages(packages):
     "Return the list of unique packages across all environments"
-    all_packages = {}
-    for environment in environments.values():
-        for packages in environment.values():
-            for package in packages:
-                package = struct(**package)
-                key = (package.subdir, package.filename)
-                if key in all_packages and package.sha256 != all_packages[key].sha256:
-                    fail("found conda packages with mismatched sha256 hashes:\n{}\n{}".format(package.url, all_packages[package.filename].url))
-                all_packages[key] = package
-    return all_packages.values()
+    unique_packages = {}
+    for package in packages:
+        package = struct(**package)
+        key = (package.subdir, package.filename)
+        if key in unique_packages and package.sha256 != unique_packages[key].sha256:
+            fail("found conda packages with mismatched sha256 hashes:\n{}\n{}".format(package.url, unique_packages[package.filename].url))
+        unique_packages[key] = package
+    return unique_packages.values()
 
 def _package_repo_name(filename, subdir):
     "Create a valid repository name for a conda package"
@@ -103,36 +101,67 @@ _install = repository_rule(
 
 _environment = tag_class(
     attrs = {
-        "name": attr.string(mandatory = True, doc = "The name of the Conda environment."),
+        "name": attr.string(mandatory = True, doc = "The name of the repository to create."),
         "lockfile": attr.label(mandatory = True, doc = "The lockfile containing the environment."),
-        "execute_link_scripts": attr.bool(default = False, doc = "Whether link scripts should be executed when installing the environment. Only applies to the host platform."),
-        "repo_name": attr.string(doc = "The name of the repo to create. Uses the environment name if not specified."),
+        "execute_link_scripts": attr.bool(default = False, doc = "Execute link scripts when installing the environment. Only applies to the host platform."),
+        "platform": attr.string(doc = "The platform to create an environment for. Defaults to the host platform."),
+        "environment": attr.string(doc = "The environment to create. Defaults to `name`."),
     },
     doc = "Create a Conda environment",
 )
 
 def _conda(ctx):
-    # Parse all lockfiles, obtaining all environments
-    environments = {}
-    cfgs = {}
+    # Detect the host platform
+    host_platform = _host_platform(ctx)
+
+    # Create each environment
+    used_packages = []
+    root_module_direct_deps = []
+    root_module_direct_dev_deps = []
     for mod in ctx.modules:
         for cfg in mod.tags.environment:
-            repo_name = cfg.repo_name
-            if repo_name == "":
-                repo_name = cfg.name
+            if mod.is_root:
+                if ctx.is_dev_dependency(cfg):
+                    root_module_direct_dev_deps.append(cfg.name)
+                else:
+                    root_module_direct_deps.append(cfg.name)
 
-            if repo_name in cfgs:
-                fail("error creating environment `{}` from `{}`\nthe named environment already exists (`{}`)".format(cfg.repo_name, cfg.lockfile, cfgs[repo_name].lockfile))
+            env = cfg.environment
+            if env == "":
+                env = cfg.name
 
-            cfgs[repo_name] = cfg
+            platform = cfg.platform
+            if platform == "":
+                platform = host_platform
+
+            if cfg.execute_link_scripts and cfg.platform != "":
+                fail("`execute_link_scripts` must be False when `platform` is specified")
 
             locked = _parse_lockfile(ctx, cfg.lockfile)
-            if cfg.name not in locked:
-                fail("environment `{}` doesn't exist in `{}`".format(cfg.name, cfg.lockfile))
-            environments[repo_name] = locked[cfg.name]
+
+            if env not in locked:
+                fail("couldn't find environment `{}`", env)
+
+            if platform not in locked[env]:
+                # TODO make this error delayed
+                fail("environment `{}` isn't locked for platform `{}`", env, platform)
+            else:
+                packages = locked[env][platform]
+                used_packages.extend(packages)
+                _install(
+                    name = cfg.name,
+                    environment_name = env,
+                    platform = platform,
+                    lockfile = cfg.lockfile,
+                    packages = {
+                        p["filename"]: "@{}//:{}/{}".format(_package_repo_name(p["filename"], p["subdir"]), p["subdir"], p["filename"])
+                        for p in packages
+                    },
+                    execute_link_scripts = cfg.execute_link_scripts,
+                )
 
     # Download all packages used across environments
-    for package in _list_packages(environments):
+    for package in _unique_packages(used_packages):
         _download(
             name = _package_repo_name(package.filename, package.subdir),
             url = package.url,
@@ -141,33 +170,9 @@ def _conda(ctx):
             subdir = package.subdir,
         )
 
-    # Install environments
-    host_platform = _host_platform(ctx)
-    for name, environment in environments.items():
-        for platform, packages in environment.items():
-            packages = {
-                p["filename"]: "@{}//:{}/{}".format(_package_repo_name(p["filename"], p["subdir"]), p["subdir"], p["filename"])
-                for p in packages
-            }
-            _install(
-                name = name + "-" + platform,
-                environment_name = name,
-                platform = platform,
-                lockfile = cfgs[name].lockfile,
-                packages = packages,
-                execute_link_scripts = cfgs[name].execute_link_scripts,
-            )
-            if platform == host_platform:
-                _install(
-                    name = name,
-                    environment_name = name,
-                    platform = platform,
-                    lockfile = cfgs[name].lockfile,
-                    packages = packages,
-                    execute_link_scripts = False,
-                )
-
     return ctx.extension_metadata(
+        root_module_direct_deps = root_module_direct_deps,
+        root_module_direct_dev_deps = root_module_direct_dev_deps,
         reproducible = True,
     )
 
@@ -175,4 +180,6 @@ conda = module_extension(
     implementation = _conda,
     tag_classes = {"environment": _environment},
     doc = "Create Conda environments",
+    arch_dependent = True,
+    os_dependent = True,
 )

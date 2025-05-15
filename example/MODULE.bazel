@@ -17,6 +17,12 @@ conda.environment(
     name = "env2",
     lockfile = "//:conda.lock",
 )
+conda.environment(
+    name = "env1-linux-aarch64",
+    environment = "env1",
+    lockfile = "//:conda.lock",
+    platform = "linux-aarch64",
+)
 
 # Host platform repos
 use_repo(conda, "env1")
