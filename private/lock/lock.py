@@ -38,7 +38,7 @@ def virtual_packages(platform):
 
 
 async def solve():
-    with tempfile.TemporaryDirectory() as cache_dir:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as cache_dir:
         client = rattler.Client.authenticated_client()
         gateway = rattler.Gateway(cache_dir=cache_dir, client=client)
 
