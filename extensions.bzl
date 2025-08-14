@@ -18,7 +18,7 @@ def _check_result(result, error):
 def _parse_lockfile(mctx, lockfile):
     "Parse a conda lockfile and return the contained environments"
     mctx.watch(lockfile)
-    parse_lockfile = Label("//private/repo:parse_lockfile.py")
+    parse_lockfile = Label("//private/environment:parse_lockfile.py")
     mctx.watch(parse_lockfile)
     result = _run_python(mctx, [parse_lockfile, lockfile, "environments.json"])
     _check_result(result, "couldn't parse lockfile {}".format(lockfile))
@@ -80,13 +80,25 @@ def _install_impl(rctx):
     for name, label in rctx.attr.packages.items():
         args += [name, rctx.path(label)]
 
-    install = Label("//private/repo:install.py")
-    template = Label("//private/repo:template.BUILD")
+    install = Label("//private/environment:install.py")
+    template = Label("//private/environment:template.BUILD")
     rctx.watch(install)
     rctx.watch(template)
     result = _run_python(rctx, [install, rctx.attr.lockfile, rctx.attr.environment_name, rctx.attr.platform, str(rctx.attr.execute_link_scripts)] + args)
     _check_result(result, "couldn't create environment {}".format(rctx.attr.name))
-    rctx.file("BUILD", rctx.read(template))
+
+    # parse metadata
+    metadata = {}
+    for f in rctx.path("conda-meta").readdir():
+        this_metadata = json.decode(rctx.read(f))
+        metadata[this_metadata["name"]] = this_metadata
+
+    rctx.file(
+        "BUILD",
+        rctx.read(template)
+            .replace("{{metadata}}", json.encode_indent(metadata))
+            .replace("{{name}}", rctx.attr.environment_name),
+    )
 
 _install = repository_rule(
     implementation = _install_impl,

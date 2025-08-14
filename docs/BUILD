@@ -10,4 +10,9 @@ stardoc_with_diff_test(
     bzl_library_target = "//:lockfile",
 )
 
+stardoc_with_diff_test(
+    name = "environment_providers",
+    bzl_library_target = "//environment:providers",
+)
+
 update_docs(name = "update")
