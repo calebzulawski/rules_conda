@@ -96,7 +96,7 @@ def _install_impl(rctx):
     rctx.file(
         "BUILD",
         rctx.read(template)
-            .replace("{{metadata}}", json.encode_indent(metadata))
+            .replace("{{metadata}}", json.encode_indent(metadata).replace("\\", "\\\\"))
             .replace("{{name}}", rctx.attr.environment_name),
     )
 
