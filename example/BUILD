@@ -1,4 +1,5 @@
 load("@rules_conda//:lockfile.bzl", "lock_environments")
+load("@rules_conda//environment:environment.bzl", "conda_binary")
 
 lock_environments(
     name = "lockfile",
@@ -11,28 +12,34 @@ lock_environments(
     macos_version = "11",
 )
 
+conda_binary(
+    name = "python",
+    environment = "@env1",
+    path = select({
+        "@platforms//os:windows": "python.exe",
+        "//conditions:default": "bin/python3",
+    }),
+)
+
+conda_binary(
+    name = "vim",
+    environment = "@env2",
+    path = select({
+        "@platforms//os:windows": "Library/bin/vim.exe",
+        "//conditions:default": "bin/vim",
+    }),
+)
+
 sh_test(
     name = "env_test",
     srcs = ["test.sh"],
-    data = select({
-        "@platforms//os:windows": [
-            "@env1//:python.exe",
-            "@env2//:Library/bin/vim.exe",
-        ],
-        "//conditions:default": [
-            "@env1//:bin/python3",
-            "@env2//:bin/vim",
-        ],
-    }),
-    env = select({
-        "@platforms//os:windows": {
-            "PYTHON": "$(rlocationpath @env1//:python.exe)",
-            "VIM": "$(rlocationpath @env2//:Library/bin/vim.exe)",
-        },
-        "//conditions:default": {
-            "PYTHON": "$(rlocationpath @env1//:bin/python3)",
-            "VIM": "$(rlocationpath @env2//:bin/vim)",
-        },
-    }),
+    data = [
+        "python",
+        "vim",
+    ],
+    env = {
+        "PYTHON": "$(rlocationpath python)",
+        "VIM": "$(rlocationpath vim)",
+    },
     deps = ["@bazel_tools//tools/bash/runfiles"],
 )

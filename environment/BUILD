@@ -6,6 +6,13 @@ exports_files(
 )
 
 bzl_library(
+    name = "environment",
+    srcs = ["environment.bzl"],
+    visibility = ["//visibility:public"],
+    deps = ["providers"],
+)
+
+bzl_library(
     name = "providers",
     srcs = ["providers.bzl"],
     visibility = ["//visibility:public"],
