@@ -10,23 +10,23 @@ local_path_override(
 
 conda = use_extension("@rules_conda//:extensions.bzl", "conda")
 conda.environment(
-    name = "env1",
+    name = "python",
     lockfile = "//:conda.lock",
 )
 conda.environment(
-    name = "env2",
+    name = "zlib",
     lockfile = "//:conda.lock",
 )
 conda.environment(
-    name = "env1-linux-aarch64",
-    environment = "env1",
+    name = "python-linux-aarch64",
+    environment = "python",
     lockfile = "//:conda.lock",
     platform = "linux-aarch64",
 )
 
 # Host platform repos
-use_repo(conda, "env1")
-use_repo(conda, "env2")
+use_repo(conda, "python")
+use_repo(conda, "zlib")
 
 # Specific platform repos
-use_repo(conda, "env1-linux-aarch64")
+use_repo(conda, "python-linux-aarch64")

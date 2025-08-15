@@ -12,14 +12,17 @@ def get_files_provided_by(environment_info, package_name, include_dependencies =
 
     Args:
         environment_info: (EnvironmentInfo) The environment to use
-        package_name: (string) The name of the package
+        package_name: (string or List[string]) The name of the package or packages
         include_dependencies: (bool) Whether or not to include files from dependencies as well
 
     Returns:
         (depset[File]) The files contained in the package
     """
+    if type(package_name) == type(""):
+        package_name = [package_name]
+
     files = []
-    packages_remaining = [package_name]
+    packages_remaining = [] + package_name
     packages_searched = []
 
     # hack to loop over every package dependency
