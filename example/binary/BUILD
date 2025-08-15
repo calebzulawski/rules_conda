@@ -13,6 +13,6 @@ sh_test(
     name = "binary_test",
     srcs = ["test.sh"],
     data = ["python"],
-    env = {"PYTHON": "$(rootpath python)"},
+    env = {"PYTHON": "$(rlocationpath python)"},
     deps = ["@bazel_tools//tools/bash/runfiles"],
 )
