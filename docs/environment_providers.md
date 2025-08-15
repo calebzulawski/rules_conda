@@ -40,7 +40,7 @@ Get all files provided by a package.
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="get_files_provided_by-environment_info"></a>environment_info |  (EnvironmentInfo) The environment to use   |  none |
-| <a id="get_files_provided_by-package_name"></a>package_name |  (string) The name of the package   |  none |
+| <a id="get_files_provided_by-package_name"></a>package_name |  (string or List[string]) The name of the package or packages   |  none |
 | <a id="get_files_provided_by-include_dependencies"></a>include_dependencies |  (bool) Whether or not to include files from dependencies as well   |  `True` |
 
 **RETURNS**
