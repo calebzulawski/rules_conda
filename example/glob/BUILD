@@ -2,7 +2,10 @@ load("@rules_conda//environment:environment.bzl", "environment_glob")
 
 environment_glob(
     name = "headers",
-    srcs = ["include/**"],
+    srcs = select({
+        "@platforms//os:windows": ["Library/include/**"],
+        "//conditions:default": ["include/**"],
+    }),
     environment = "@zlib",
 )
 
