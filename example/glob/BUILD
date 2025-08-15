@@ -6,41 +6,38 @@ environment_glob(
     environment = "@zlib",
 )
 
-environment_glob(
-    name = "library",
-    srcs = select({
-        "@platforms//os:windows": ["Library/lib/zlib.lib"],
-        "//conditions:default": ["lib/libz.so.1"],
-    }),
-    environment = "@zlib",
-)
-
-alias(
-    name = "zlib.h",
-    actual = select({
-        "@platforms//os:windows": "@zlib//:Library/include/zlib.h",
-        "//conditions:default": "@zlib//:include/zlib.h",
-    }),
-)
-
 cc_library(
-    name = "zlib",
-    srcs = ["library"],
+    name = "import_headers",
     hdrs = ["headers"],
 
     # this should be `additional_compiler_inputs`, but `includes` doesn't seem to check it
-    data = ["zlib.h"],
+    data = select({
+        "@platforms//os:windows": ["@zlib//:Library/include/zlib.h"],
+        "//conditions:default": ["@zlib//:include/zlib.h"],
+    }),
 
     # is there a better way to do this? maybe!
-    includes = ["../$(execpath zlib.h)/.."],
+    includes = select({
+        "@platforms//os:windows": ["../$(execpath @zlib//:Library/include/zlib.h)/.."],
+        "//conditions:default": ["../$(execpath @zlib//:include/zlib.h)/.."],
+    }),
+)
+
+cc_import(
+    name = "zlib",
+    interface_library = select({
+        "@platforms//os:windows": "@zlib//:Library/lib/zlib.lib",
+        "//conditions:default": None,
+    }),
+    shared_library = select({
+        "@platforms//os:windows": "@zlib//:zlib.dll",
+        "//conditions:default": "@zlib//:lib/libz.so.1",
+    }),
+    deps = ["import_headers"],
 )
 
 cc_test(
     name = "glob_test",
     srcs = ["test.cpp"],
-    data = select({
-        "@platforms//os:windows": ["@zlib//:zlib.dll"],
-        "//conditions:default": [],
-    }),
     deps = ["zlib"],
 )
