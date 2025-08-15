@@ -34,6 +34,7 @@ cc_import(
     }),
     shared_library = select({
         "@platforms//os:windows": "@zlib//:zlib.dll",
+        "@platforms//os:macos": "@zlib//:lib/libz.1.dylib",
         "//conditions:default": "@zlib//:lib/libz.so.1",
     }),
     deps = ["import_headers"],
