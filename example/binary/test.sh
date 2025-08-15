@@ -2,4 +2,4 @@
 
 set -eux
 
-binary/python --version
+$PYTHON --version
