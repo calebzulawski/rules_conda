@@ -45,6 +45,12 @@ def _import_library(ctx):
     env_info = ctx.attr.environment[EnvironmentInfo]
     dir_info = env_info.files
 
+    # Determine dev root dir
+    if ctx.target_platform_has_constraint(ctx.attr._windows[platform_common.ConstraintValueInfo]):
+        include_dir = "Library/include"
+    else:
+        include_dir = "include"
+
     # Collect package dependencies
     packages = set()
     for package in ctx.attr.packages:
@@ -63,15 +69,12 @@ def _import_library(ctx):
             fail("Library `{}` is in package `{}`, which isn't selected for import".format(library, package))
 
     # Get headers
-    if ctx.target_platform_has_constraint(ctx.attr._windows[platform_common.ConstraintValueInfo]):
-        include_dir = dir_info.get_subdirectory("Library/include")
-    else:
-        include_dir = dir_info.get_subdirectory("include")
-    headers = include_dir.transitive_files.to_list() if include_dir else []
+    include_dir_info = dir_info.get_subdirectory(include_dir)
+    headers = include_dir_info.transitive_files.to_list() if include_dir_info else []
     headers = [h for h in headers if what_provides(env_info, file_relative_path(env_info, h)) in packages]
 
     # Build include paths
-    includes = ["include"] + ctx.attr.includes
+    includes = [include_dir] + ctx.attr.includes
     includes = [paths.join(dir_info.path, i) for i in includes]
 
     # Build contexts
