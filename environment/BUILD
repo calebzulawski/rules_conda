@@ -9,7 +9,10 @@ bzl_library(
     name = "defs",
     srcs = ["defs.bzl"],
     visibility = ["//visibility:public"],
-    deps = ["providers", "//environment/private"],
+    deps = [
+        "providers",
+        "//environment/private",
+    ],
 )
 
 bzl_library(
