@@ -6,6 +6,26 @@ EnvironmentInfo = provider(
     },
 )
 
+def dependent_packages(environment_info, package):
+    """
+    Get the dependent packages of a package
+
+    Args:
+        environment_info: (EnvironmentInfo) The environment to use
+        package: (string) The name of a package
+
+    Returns:
+        (string) The names of dependent packages
+    """
+    depends = []
+    for d in environment_info.metadata[package]["depends"]:
+        d = d.split(" ")[0]
+
+        # exclude virtual packages
+        if d in environment_info.metadata:
+            depends.append(d)
+    return depends
+
 def get_files_provided_by(environment_info, package_name, include_dependencies = True):
     """
     Get all files provided by a package.
@@ -33,15 +53,27 @@ def get_files_provided_by(environment_info, package_name, include_dependencies =
         package = packages_remaining[-1]
 
         if include_dependencies:
-            for d in environment_info.metadata[package]["depends"]:
-                d = d.split(" ")[0]
-                if d not in packages_remaining and d not in packages_searched and d in environment_info.metadata:
+            for d in dependent_packages(environment_info, package):
+                if d not in packages_remaining and d not in packages_searched:
                     packages_remaining.append(d)
 
         files.extend(environment_info.metadata[package]["files"])
         packages_searched.append(packages_remaining.pop())
 
     return environment_info.files.glob(include = files, exclude = [], allow_empty = True)
+
+def file_relative_path(environment_info, file):
+    """
+    Get the relative path of a file to the environment
+
+    Args:
+        environment_info: (EnvironmentInfo) The environment to use
+        file: (File) The file
+
+    Returns:
+        (string) The file path relative to the environment
+    """
+    return file.path.removeprefix(environment_info.files.path).removeprefix("/")
 
 def what_provides(environment_info, path):
     """
@@ -54,6 +86,8 @@ def what_provides(environment_info, path):
     Returns:
         (string) The package containing the file, or None if the file doesn't exist in the environment
     """
+    if type(path) != type(""):
+        fail("Expected string")
     for package in environment_info.metadata.values():
         if path in package["files"]:
             return package["name"]

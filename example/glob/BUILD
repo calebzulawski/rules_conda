@@ -1,4 +1,4 @@
-load("@rules_conda//environment:environment.bzl", "environment_glob")
+load("@rules_conda//environment:defs.bzl", "environment_glob")
 
 environment_glob(
     name = "headers",
