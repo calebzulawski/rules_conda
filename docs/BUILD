@@ -12,7 +12,7 @@ stardoc_with_diff_test(
 
 stardoc_with_diff_test(
     name = "environment",
-    bzl_library_target = "//environment:environment",
+    bzl_library_target = "//environment:defs",
 )
 
 stardoc_with_diff_test(

@@ -22,6 +22,56 @@ Information about a Conda environment
 | <a id="EnvironmentInfo-files"></a>files |  (DirectoryInfo) The files contained in this environment    |
 
 
+<a id="dependent_packages"></a>
+
+## dependent_packages
+
+<pre>
+load("@rules_conda//environment:providers.bzl", "dependent_packages")
+
+dependent_packages(<a href="#dependent_packages-environment_info">environment_info</a>, <a href="#dependent_packages-package">package</a>)
+</pre>
+
+Get the dependent packages of a package
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="dependent_packages-environment_info"></a>environment_info |  (EnvironmentInfo) The environment to use   |  none |
+| <a id="dependent_packages-package"></a>package |  (string) The name of a package   |  none |
+
+**RETURNS**
+
+(string) The names of dependent packages
+
+
+<a id="file_relative_path"></a>
+
+## file_relative_path
+
+<pre>
+load("@rules_conda//environment:providers.bzl", "file_relative_path")
+
+file_relative_path(<a href="#file_relative_path-environment_info">environment_info</a>, <a href="#file_relative_path-file">file</a>)
+</pre>
+
+Get the relative path of a file to the environment
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="file_relative_path-environment_info"></a>environment_info |  (EnvironmentInfo) The environment to use   |  none |
+| <a id="file_relative_path-file"></a>file |  (File) The file   |  none |
+
+**RETURNS**
+
+(string) The file path relative to the environment
+
+
 <a id="get_files_provided_by"></a>
 
 ## get_files_provided_by
