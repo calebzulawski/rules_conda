@@ -10,7 +10,7 @@ client = rattler.Client.authenticated_client()
 lock_path = sys.argv[1]
 name = sys.argv[2]
 platform = Platform(sys.argv[3])
-execute_link_scripts = bool(sys.argv[4])
+execute_link_scripts = sys.argv[4].lower() == "true"
 paths = dict(zip(sys.argv[5::2], sys.argv[6::2]))
 
 lock = LockFile.from_path(lock_path)

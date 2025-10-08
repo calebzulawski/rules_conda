@@ -31,7 +31,7 @@ def _unique_packages(packages):
         package = struct(**package)
         key = (package.subdir, package.filename)
         if key in unique_packages and package.sha256 != unique_packages[key].sha256:
-            fail("found conda packages with mismatched sha256 hashes:\n{}\n{}".format(package.url, unique_packages[package.filename].url))
+            fail("found conda packages with mismatched sha256 hashes:\n{}\n{}".format(package.url, unique_packages[key].url))
         unique_packages[key] = package
     return unique_packages.values()
 
