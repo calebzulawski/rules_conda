@@ -3,6 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - python
+  - numpy
 platforms:
   - linux-64
   - linux-aarch64

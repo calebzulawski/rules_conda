@@ -30,3 +30,6 @@ use_repo(conda, "zlib")
 
 # Specific platform repos
 use_repo(conda, "python-linux-aarch64")
+
+# Register the python toolchain
+register_toolchains("//python_toolchain")
