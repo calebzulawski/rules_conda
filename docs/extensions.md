@@ -7,7 +7,7 @@ Module extensions for loading Conda environments.
 ## conda
 
 <pre>
-conda = use_extension("@rules_conda//:extensions.bzl", "conda")
+conda = use_extension("@rules_conda//conda/extensions:module.bzl", "conda")
 conda.environment(<a href="#conda.environment-name">name</a>, <a href="#conda.environment-environment">environment</a>, <a href="#conda.environment-execute_link_scripts">execute_link_scripts</a>, <a href="#conda.environment-lockfile">lockfile</a>, <a href="#conda.environment-platform">platform</a>)
 </pre>
 

@@ -1,6 +1,6 @@
 load("@rules_python//python:py_runtime.bzl", "py_runtime")
 load("@rules_python//python:py_runtime_pair.bzl", "py_runtime_pair")
-load("//environment:providers.bzl", "EnvironmentInfo", "file_relative_path", "get_files_provided_by", "what_provides")
+load("//conda/environment:providers.bzl", "EnvironmentInfo")
 
 def _get_interpreter(ctx):
     env_info = ctx.attr.environment[EnvironmentInfo]

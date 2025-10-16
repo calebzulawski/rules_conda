@@ -11,7 +11,8 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         "providers",
-        "//environment/private",
+        "//conda/cc:import",
+        "//conda/environment/private",
     ],
 )
 

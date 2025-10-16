@@ -1,4 +1,4 @@
-load("@rules_conda//:lockfile.bzl", "lock_environments")
+load("@rules_conda//conda/lock:lockfile.bzl", "lock_environments")
 
 lock_environments(
     name = "lockfile",

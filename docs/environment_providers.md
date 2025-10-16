@@ -7,7 +7,7 @@
 ## EnvironmentInfo
 
 <pre>
-load("@rules_conda//environment:providers.bzl", "EnvironmentInfo")
+load("@rules_conda//conda/environment:providers.bzl", "EnvironmentInfo")
 
 EnvironmentInfo(<a href="#EnvironmentInfo-metadata">metadata</a>, <a href="#EnvironmentInfo-files">files</a>)
 </pre>
@@ -27,7 +27,7 @@ Information about a Conda environment
 ## dependent_packages
 
 <pre>
-load("@rules_conda//environment:providers.bzl", "dependent_packages")
+load("@rules_conda//conda/environment:providers.bzl", "dependent_packages")
 
 dependent_packages(<a href="#dependent_packages-environment_info">environment_info</a>, <a href="#dependent_packages-package">package</a>)
 </pre>
@@ -52,7 +52,7 @@ Get the dependent packages of a package
 ## file_relative_path
 
 <pre>
-load("@rules_conda//environment:providers.bzl", "file_relative_path")
+load("@rules_conda//conda/environment:providers.bzl", "file_relative_path")
 
 file_relative_path(<a href="#file_relative_path-environment_info">environment_info</a>, <a href="#file_relative_path-file">file</a>)
 </pre>
@@ -77,7 +77,7 @@ Get the relative path of a file to the environment
 ## get_files_provided_by
 
 <pre>
-load("@rules_conda//environment:providers.bzl", "get_files_provided_by")
+load("@rules_conda//conda/environment:providers.bzl", "get_files_provided_by")
 
 get_files_provided_by(<a href="#get_files_provided_by-environment_info">environment_info</a>, <a href="#get_files_provided_by-package_name">package_name</a>, <a href="#get_files_provided_by-include_dependencies">include_dependencies</a>)
 </pre>
@@ -103,7 +103,7 @@ Get all files provided by a package.
 ## what_provides
 
 <pre>
-load("@rules_conda//environment:providers.bzl", "what_provides")
+load("@rules_conda//conda/environment:providers.bzl", "what_provides")
 
 what_provides(<a href="#what_provides-environment_info">environment_info</a>, <a href="#what_provides-path">path</a>)
 </pre>

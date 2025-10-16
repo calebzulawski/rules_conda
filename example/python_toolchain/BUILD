@@ -1,4 +1,4 @@
-load("@rules_conda//:python.bzl", "conda_python_toolchain")
+load("@rules_conda//conda/python:toolchain.bzl", "conda_python_toolchain")
 
 conda_python_toolchain(
     name = "conda_python_toolchain",

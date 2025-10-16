@@ -7,7 +7,7 @@ Rules for creating lockfiles.
 ## lock_environments
 
 <pre>
-load("@rules_conda//:lockfile.bzl", "lock_environments")
+load("@rules_conda//conda/lock:lockfile.bzl", "lock_environments")
 
 lock_environments(<a href="#lock_environments-name">name</a>, <a href="#lock_environments-environments">environments</a>, <a href="#lock_environments-lockfile">lockfile</a>, <a href="#lock_environments-cuda_version">cuda_version</a>, <a href="#lock_environments-macos_version">macos_version</a>, <a href="#lock_environments-glibc_version">glibc_version</a>,
                   <a href="#lock_environments-visibility">visibility</a>, <a href="#lock_environments-tags">tags</a>, <a href="#lock_environments-kwargs">**kwargs</a>)

@@ -1,4 +1,4 @@
-load("//environment:providers.bzl", "EnvironmentInfo", "get_files_provided_by", "what_provides")
+load("//conda/environment:providers.bzl", "EnvironmentInfo", "get_files_provided_by", "what_provides")
 
 def _environment_glob(ctx):
     info = ctx.attr.environment[EnvironmentInfo]
