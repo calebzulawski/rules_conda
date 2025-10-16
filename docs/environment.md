@@ -7,7 +7,7 @@
 ## environment_glob
 
 <pre>
-load("@rules_conda//environment:defs.bzl", "environment_glob")
+load("@rules_conda//conda/environment:defs.bzl", "environment_glob")
 
 environment_glob(<a href="#environment_glob-name">name</a>, <a href="#environment_glob-srcs">srcs</a>, <a href="#environment_glob-data">data</a>, <a href="#environment_glob-allow_empty">allow_empty</a>, <a href="#environment_glob-environment">environment</a>, <a href="#environment_glob-exclude">exclude</a>, <a href="#environment_glob-include_package_dependencies">include_package_dependencies</a>,
                  <a href="#environment_glob-packages">packages</a>)
@@ -35,7 +35,7 @@ Globs files from an environment
 ## import_library
 
 <pre>
-load("@rules_conda//environment:defs.bzl", "import_library")
+load("@rules_conda//conda/environment:defs.bzl", "import_library")
 
 import_library(<a href="#import_library-name">name</a>, <a href="#import_library-deps">deps</a>, <a href="#import_library-alwayslink">alwayslink</a>, <a href="#import_library-environment">environment</a>, <a href="#import_library-includes">includes</a>, <a href="#import_library-interface_library">interface_library</a>, <a href="#import_library-packages">packages</a>,
                <a href="#import_library-pic_static_library">pic_static_library</a>, <a href="#import_library-shared_library">shared_library</a>, <a href="#import_library-static_library">static_library</a>)
@@ -65,7 +65,7 @@ Imports a library from an environment, as if by cc_import
 ## run_binary
 
 <pre>
-load("@rules_conda//environment:defs.bzl", "run_binary")
+load("@rules_conda//conda/environment:defs.bzl", "run_binary")
 
 run_binary(<a href="#run_binary-name">name</a>, <a href="#run_binary-environment">environment</a>, <a href="#run_binary-path">path</a>)
 </pre>

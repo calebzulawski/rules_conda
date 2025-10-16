@@ -1,6 +1,6 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
-load("//environment:providers.bzl", "EnvironmentInfo", "dependent_packages", "file_relative_path", "get_files_provided_by", "what_provides")
+load("//conda/environment:providers.bzl", "EnvironmentInfo", "dependent_packages", "file_relative_path", "get_files_provided_by", "what_provides")
 
 def _build_linking_context(ctx):
     cc_toolchain = find_cc_toolchain(ctx)

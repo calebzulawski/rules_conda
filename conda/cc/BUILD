@@ -1,19 +1,16 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 exports_files(
-    glob(["*.bzl"]),
+    ["import.bzl"],
     visibility = ["//visibility:public"],
 )
 
 bzl_library(
-    name = "private",
-    srcs = [
-        "environment_glob.bzl",
-        "import_library.bzl",
-        "run_binary.bzl",
-    ],
+    name = "import",
+    srcs = ["import.bzl"],
     visibility = ["//visibility:public"],
     deps = [
+        "//conda/environment:providers",
         "@bazel_skylib//lib:paths",
         "@rules_cc//cc:find_cc_toolchain_bzl",
     ],

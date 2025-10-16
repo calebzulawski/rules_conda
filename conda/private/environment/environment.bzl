@@ -1,5 +1,5 @@
 load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
-load("//environment:providers.bzl", "EnvironmentInfo")
+load("//conda/environment:providers.bzl", "EnvironmentInfo")
 
 def _environment(ctx):
     environment_info = EnvironmentInfo(
