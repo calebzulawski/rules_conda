@@ -10,4 +10,7 @@ py_binary(
     ],
 )
 
-exports_files(["lock.sh"])
+exports_files([
+    "lock.sh",
+    "lock.bzl",
+])

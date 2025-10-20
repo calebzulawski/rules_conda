@@ -10,7 +10,11 @@ bzl_library(
     srcs = [
         "environment_glob.bzl",
         "run_binary.bzl",
+        "//conda/environment/private/lock:lock.bzl",
     ],
     visibility = ["//visibility:public"],
-    deps = ["//conda/environment:providers"],
+    deps = [
+        "//conda/environment:providers",
+        "@rules_shell//shell:rules_bzl",
+    ],
 )
