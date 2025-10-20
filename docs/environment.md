@@ -30,36 +30,6 @@ Globs files from an environment
 | <a id="environment_glob-packages"></a>packages |  A list of packages globs are allowed to match.<br><br>If empty, matches all packages.   | List of strings | optional |  `[]`  |
 
 
-<a id="import_library"></a>
-
-## import_library
-
-<pre>
-load("@rules_conda//conda/environment:defs.bzl", "import_library")
-
-import_library(<a href="#import_library-name">name</a>, <a href="#import_library-deps">deps</a>, <a href="#import_library-alwayslink">alwayslink</a>, <a href="#import_library-environment">environment</a>, <a href="#import_library-includes">includes</a>, <a href="#import_library-interface_library">interface_library</a>, <a href="#import_library-packages">packages</a>,
-               <a href="#import_library-pic_static_library">pic_static_library</a>, <a href="#import_library-shared_library">shared_library</a>, <a href="#import_library-static_library">static_library</a>)
-</pre>
-
-Imports a library from an environment, as if by cc_import
-
-**ATTRIBUTES**
-
-
-| Name  | Description | Type | Mandatory | Default |
-| :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="import_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="import_library-deps"></a>deps |  The list of other libraries that the target depends on.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="import_library-alwayslink"></a>alwayslink |  If true, link in all object files specified by the static library, even if no symbols are referenced.   | Boolean | optional |  `False`  |
-| <a id="import_library-environment"></a>environment |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
-| <a id="import_library-includes"></a>includes |  List of include dirs to be added to the compile line, relative to the conda environment include directory root.   | List of strings | optional |  `[]`  |
-| <a id="import_library-interface_library"></a>interface_library |  -   | String | optional |  `""`  |
-| <a id="import_library-packages"></a>packages |  Packages containing libraries and headers to import   | List of strings | optional |  `[]`  |
-| <a id="import_library-pic_static_library"></a>pic_static_library |  -   | String | optional |  `""`  |
-| <a id="import_library-shared_library"></a>shared_library |  -   | String | optional |  `""`  |
-| <a id="import_library-static_library"></a>static_library |  -   | String | optional |  `""`  |
-
-
 <a id="run_binary"></a>
 
 ## run_binary
@@ -80,5 +50,39 @@ Creates a binary target from an executable in an environment
 | <a id="run_binary-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="run_binary-environment"></a>environment |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="run_binary-path"></a>path |  The path of the binary   | String | required |  |
+
+
+<a id="lock_environments"></a>
+
+## lock_environments
+
+<pre>
+load("@rules_conda//conda/environment:defs.bzl", "lock_environments")
+
+lock_environments(<a href="#lock_environments-name">name</a>, <a href="#lock_environments-environments">environments</a>, <a href="#lock_environments-lockfile">lockfile</a>, <a href="#lock_environments-cuda_version">cuda_version</a>, <a href="#lock_environments-macos_version">macos_version</a>, <a href="#lock_environments-glibc_version">glibc_version</a>,
+                  <a href="#lock_environments-visibility">visibility</a>, <a href="#lock_environments-tags">tags</a>, <a href="#lock_environments-kwargs">**kwargs</a>)
+</pre>
+
+Lock Conda environments.
+
+Creates two targets:
+* `bazel run [name].update` to update the lockfile
+* `bazel test [name].test` to ensure the lockfile is up-to-date
+
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="lock_environments-name"></a>name |  The name of this rule   |  `None` |
+| <a id="lock_environments-environments"></a>environments |  A list of environment files, in YAML format   |  `[]` |
+| <a id="lock_environments-lockfile"></a>lockfile |  The lockfile to create   |  `"conda.lock"` |
+| <a id="lock_environments-cuda_version"></a>cuda_version |  The CUDA version to use to solve   |  `None` |
+| <a id="lock_environments-macos_version"></a>macos_version |  The macOS version to use to solve   |  `None` |
+| <a id="lock_environments-glibc_version"></a>glibc_version |  The glibc version to use to solve   |  `None` |
+| <a id="lock_environments-visibility"></a>visibility |  passed to both .update and .test   |  `["//visibility:private"]` |
+| <a id="lock_environments-tags"></a>tags |  passed to both .update and .test   |  `[]` |
+| <a id="lock_environments-kwargs"></a>kwargs |  additional arguments passed to .test   |  none |
 
 

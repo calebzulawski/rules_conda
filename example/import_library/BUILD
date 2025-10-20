@@ -1,4 +1,4 @@
-load("@rules_conda//conda/environment:defs.bzl", "import_library")
+load("@rules_conda//conda/cc:import.bzl", "import_library")
 
 import_library(
     name = "zlib",
