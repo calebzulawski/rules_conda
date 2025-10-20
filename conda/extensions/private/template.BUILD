@@ -1,5 +1,5 @@
 load("@bazel_skylib//rules/directory:directory.bzl", "directory")
-load("@rules_conda//conda/private/environment:environment.bzl", "environment")
+load("@rules_conda//conda/extensions/private:environment.bzl", "environment")
 
 filtered_files = [f for f in glob(
     ["**/*"],

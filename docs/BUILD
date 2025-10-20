@@ -6,11 +6,6 @@ stardoc_with_diff_test(
 )
 
 stardoc_with_diff_test(
-    name = "lockfile",
-    bzl_library_target = "//conda/lock:lockfile",
-)
-
-stardoc_with_diff_test(
     name = "environment",
     bzl_library_target = "//conda/environment:defs",
 )

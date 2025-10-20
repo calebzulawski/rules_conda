@@ -18,7 +18,7 @@ def _check_result(result, error):
 def _parse_lockfile(mctx, lockfile):
     "Parse a conda lockfile and return the contained environments"
     mctx.watch(lockfile)
-    parse_lockfile = Label("//conda/private/environment:parse_lockfile.py")
+    parse_lockfile = Label("//conda/extensions/private:parse_lockfile.py")
     mctx.watch(parse_lockfile)
     result = _run_python(mctx, [parse_lockfile, lockfile, "environments.json"])
     _check_result(result, "couldn't parse lockfile {}".format(lockfile))
@@ -80,8 +80,8 @@ def _install_impl(rctx):
     for name, label in rctx.attr.packages.items():
         args += [name, rctx.path(label)]
 
-    install = Label("//conda/private/environment:install.py")
-    template = Label("//conda/private/environment:template.BUILD")
+    install = Label("//conda/extensions/private:install.py")
+    template = Label("//conda/extensions/private:template.BUILD")
     rctx.watch(install)
     rctx.watch(template)
     result = _run_python(rctx, [install, rctx.attr.lockfile, rctx.attr.environment_name, rctx.attr.platform, str(rctx.attr.execute_link_scripts)] + args)

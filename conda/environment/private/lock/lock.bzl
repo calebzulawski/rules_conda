@@ -38,8 +38,8 @@ _lockfile = rule(
         "macos_version": attr.string(),
         "glibc_version": attr.string(),
         "mode": attr.string(),
-        "_template": attr.label(default = "//conda/private/lock:lock.sh", allow_single_file = True),
-        "_lock_script": attr.label(default = "//conda/private/lock", executable = True, cfg = "exec"),
+        "_template": attr.label(default = "//conda/environment/private/lock:lock.sh", allow_single_file = True),
+        "_lock_script": attr.label(default = "//conda/environment/private/lock", executable = True, cfg = "exec"),
         "_runfiles": attr.label(default = "@bazel_tools//tools/bash/runfiles"),
     },
 )
@@ -94,7 +94,7 @@ def lock_environments(
         name = name + ".update",
         srcs = [name + ".impl.update"],
         deps = ["@bazel_tools//tools/bash/runfiles"],
-        data = [lockfile, Label("//conda/private/lock")] + environments,
+        data = [lockfile, Label("//conda/environment/private/lock")] + environments,
         visibility = visibility,
         tags = tags,
     )
@@ -102,7 +102,7 @@ def lock_environments(
         name = name + ".test",
         srcs = [name + ".impl.test"],
         deps = ["@bazel_tools//tools/bash/runfiles"],
-        data = [lockfile, Label("//conda/private/lock")] + environments,
+        data = [lockfile, Label("//conda/environment/private/lock")] + environments,
         visibility = visibility,
         tags = tags,
         **kwargs
