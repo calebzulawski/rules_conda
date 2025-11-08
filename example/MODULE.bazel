@@ -23,10 +23,26 @@ conda.environment(
     lockfile = "//:conda.lock",
     platform = "linux-aarch64",
 )
+conda.environment(
+    name = "libpng",
+    lockfile = "//:conda.lock",
+)
+conda.pkg_config(
+    name = "libpng",
+    environment = "libpng",
+    modules = ["libpng"],
+)
+conda.pkg_config(
+    name = "libpng-static",
+    environment = "libpng",
+    modules = ["libpng"],
+    static = True,
+)
 
 # Host platform repos
 use_repo(conda, "python")
 use_repo(conda, "zlib")
+use_repo(conda, "libpng")
 
 # Specific platform repos
 use_repo(conda, "python-linux-aarch64")

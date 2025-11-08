@@ -4,6 +4,7 @@ lock_environments(
     name = "lockfile",
     cuda_version = "10",
     environments = [
+        "libpng-env.yml",
         "python-env.yml",
         "zlib-env.yml",
     ],

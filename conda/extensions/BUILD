@@ -9,4 +9,7 @@ bzl_library(
     name = "module",
     srcs = ["module.bzl"],
     visibility = ["//visibility:public"],
+    deps = [
+        "//conda/extensions/private:pkg_config_repo",
+    ],
 )

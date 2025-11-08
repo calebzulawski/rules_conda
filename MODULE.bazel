@@ -28,3 +28,11 @@ pip.parse(
 )
 use_repo(pip, "pypi")
 use_repo(pip, "pypi_311_py_rattler")
+
+conda = use_extension("//conda/extensions:module.bzl", "conda")
+conda.environment(
+    name = "rules_conda_pkg_config_tool",
+    environment = "pkg-config",
+    lockfile = "//conda/extensions/private/pkg_config_tool:pkg-config.lock",
+)
+use_repo(conda, "rules_conda_pkg_config_tool")

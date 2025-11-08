@@ -1,5 +1,7 @@
 """ Module extensions for loading Conda environments. """
 
+load("//conda/extensions/private:pkg_config_repo.bzl", "write_pkg_config_targets")
+
 def _run_python(rctx, args):
     "Run Python in a repository_rule context with rattler"
     path = "bin/python3"
@@ -100,6 +102,13 @@ def _install_impl(rctx):
             .replace("{{name}}", rctx.attr.environment_name),
     )
 
+    if len(rctx.attr.pkg_config_entries) > 0:
+        write_pkg_config_targets(
+            rctx,
+            entries = [json.decode(e) for e in rctx.attr.pkg_config_entries],
+            environment_target = "//:{}".format(rctx.attr.environment_name),
+        )
+
 _install = repository_rule(
     implementation = _install_impl,
     attrs = {
@@ -108,6 +117,7 @@ _install = repository_rule(
         "platform": attr.string(),
         "packages": attr.string_keyed_label_dict(),
         "execute_link_scripts": attr.bool(),
+        "pkg_config_entries": attr.string_list(default = []),
     },
 )
 
@@ -122,9 +132,31 @@ _environment = tag_class(
     doc = "Create a Conda environment",
 )
 
+_pkg_config = tag_class(
+    attrs = {
+        "name": attr.string(mandatory = True, doc = "Name of the pkg-config target to create."),
+        "environment": attr.string(mandatory = True, doc = "Repository name of the Conda environment providing `.pc` files."),
+        "modules": attr.string_list(doc = "pkg-config modules to query. Defaults to `[name]`."),
+        "static": attr.bool(default = False, doc = "Link statically when available."),
+        "extra_pkg_config_paths": attr.string_list(doc = "Additional pkg-config search paths, relative to the environment root."),
+    },
+    doc = "Create library targets with pkg-config inside a Conda environment repository.",
+)
+
 def _conda(ctx):
     # Detect the host platform
     host_platform = _host_platform(ctx)
+
+    pkg_entries_by_repo = {}
+    for mod in ctx.modules:
+        for cfg in mod.tags.pkg_config:
+            modules = cfg.modules if cfg.modules else [cfg.name]
+            pkg_entries_by_repo.setdefault(cfg.environment, []).append({
+                "name": cfg.name,
+                "modules": modules,
+                "static": cfg.static,
+                "extra_paths": cfg.extra_pkg_config_paths,
+            })
 
     # Create each environment
     used_packages = []
@@ -160,6 +192,10 @@ def _conda(ctx):
             else:
                 packages = locked[env][platform]
                 used_packages.extend(packages)
+                if platform.startswith("win"):
+                    pkg_config_entries = []
+                else:
+                    pkg_config_entries = [json.encode(entry) for entry in pkg_entries_by_repo.get(cfg.name, [])]
                 _install(
                     name = cfg.name,
                     environment_name = env,
@@ -170,6 +206,7 @@ def _conda(ctx):
                         for p in packages
                     },
                     execute_link_scripts = cfg.execute_link_scripts,
+                    pkg_config_entries = pkg_config_entries,
                 )
 
     # Download all packages used across environments
@@ -190,7 +227,10 @@ def _conda(ctx):
 
 conda = module_extension(
     implementation = _conda,
-    tag_classes = {"environment": _environment},
+    tag_classes = {
+        "environment": _environment,
+        "pkg_config": _pkg_config,
+    },
     doc = "Create Conda environments",
     arch_dependent = True,
     os_dependent = True,

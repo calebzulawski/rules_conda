@@ -1,0 +1,12 @@
+name: libpng
+channels:
+  - conda-forge
+dependencies:
+  - libpng
+  - zlib
+platforms:
+  - linux-64
+  - linux-aarch64
+  - osx-64
+  - osx-arm64
+  - win-64
