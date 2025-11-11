@@ -47,6 +47,6 @@ Create library targets with pkg-config inside a Conda environment repository.
 | <a id="conda.pkg_config-environment"></a>environment |  Repository name of the Conda environment providing `.pc` files.   | String | required |  |
 | <a id="conda.pkg_config-extra_pkg_config_paths"></a>extra_pkg_config_paths |  Additional pkg-config search paths, relative to the environment root.   | List of strings | optional |  `[]`  |
 | <a id="conda.pkg_config-modules"></a>modules |  pkg-config modules to query. Defaults to `[name]`.   | List of strings | optional |  `[]`  |
-| <a id="conda.pkg_config-static"></a>static |  Link statically when available.   | Boolean | optional |  `False`  |
+| <a id="conda.pkg_config-static"></a>static |  Link statically when available (ignored on Windows).   | Boolean | optional |  `False`  |
 
 

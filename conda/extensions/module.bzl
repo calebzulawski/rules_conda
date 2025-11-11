@@ -137,7 +137,7 @@ _pkg_config = tag_class(
         "name": attr.string(mandatory = True, doc = "Name of the pkg-config target to create."),
         "environment": attr.string(mandatory = True, doc = "Repository name of the Conda environment providing `.pc` files."),
         "modules": attr.string_list(doc = "pkg-config modules to query. Defaults to `[name]`."),
-        "static": attr.bool(default = False, doc = "Link statically when available."),
+        "static": attr.bool(default = False, doc = "Link statically when available (ignored on Windows)."),
         "extra_pkg_config_paths": attr.string_list(doc = "Additional pkg-config search paths, relative to the environment root."),
     },
     doc = "Create library targets with pkg-config inside a Conda environment repository.",
@@ -192,10 +192,7 @@ def _conda(ctx):
             else:
                 packages = locked[env][platform]
                 used_packages.extend(packages)
-                if platform.startswith("win"):
-                    pkg_config_entries = []
-                else:
-                    pkg_config_entries = [json.encode(entry) for entry in pkg_entries_by_repo.get(cfg.name, [])]
+                pkg_config_entries = [json.encode(entry) for entry in pkg_entries_by_repo.get(cfg.name, [])]
                 _install(
                     name = cfg.name,
                     environment_name = env,

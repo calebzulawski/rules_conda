@@ -3,6 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - pkg-config
+  - binutils
 platforms:
   - linux-64
   - linux-aarch64

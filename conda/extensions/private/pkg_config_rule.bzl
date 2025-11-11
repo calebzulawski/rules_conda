@@ -4,6 +4,31 @@ load("//conda/environment:providers.bzl", "EnvironmentInfo")
 
 _ENV_ROOT_PLACEHOLDER = "__rules_conda_env__"
 
+def _decode_link_entry(entry):
+    if "|" not in entry:
+        return struct(type = "flag", value = entry)
+    parts = entry.split("|")
+    if not parts:
+        fail("Malformed link entry `{}`".format(entry))
+    kind = parts[0]
+    if kind == "F":
+        if len(parts) != 2:
+            fail("Flag entry `{}` must have exactly one value".format(entry))
+        return struct(type = "flag", value = parts[1])
+    if kind == "S":
+        if len(parts) != 2:
+            fail("Static entry `{}` must have exactly one value".format(entry))
+        return struct(type = "static", path = parts[1])
+    if kind == "D":
+        if len(parts) < 2:
+            fail("Dynamic entry `{}` missing library path".format(entry))
+        library = parts[1]
+        interface = ""
+        if len(parts) >= 3:
+            interface = parts[2]
+        return struct(type = "dynamic", library = library, interface = interface)
+    fail("Unknown link entry kind `{}`".format(kind))
+
 def _normalize_relative_path(path):
     normalized = path.replace("\\", "/")
     if normalized in ["", ".", "./"]:
@@ -52,81 +77,14 @@ def _parse_cflags(flag_values):
         others = others,
     )
 
-def _parse_libs(flag_values):
-    lib_dirs = []
-    libs = []
-    other = []
-    for flag in flag_values:
-        if flag.startswith("-L"):
-            directory = flag.removeprefix("-L")
-            if directory == "":
-                fail("`-L` flag must be immediately followed by a path")
-            lib_dirs.append(directory)
-        elif flag.startswith("-l"):
-            library = flag.removeprefix("-l")
-            if library == "":
-                fail("`-l` flag must be immediately followed by a library")
-            libs.append(library)
-        else:
-            other.append(flag)
-    return struct(
-        lib_dirs = lib_dirs,
-        libs = libs,
-        other = other,
-    )
-
-def _first_match(dir_info, pattern):
-    matches = dir_info.glob(include = [pattern], allow_empty = True).to_list()
-    if not matches:
-        return None
-    matches = sorted(matches, key = lambda f: f.path)
-    return matches[0]
-
-def _resolve_library_files(dir_info, lib_dirs, libs, static, shared_exts, static_exts, lib_prefix):
-    entries = []
-    if not libs:
-        return entries
-
-    extensions = static_exts + shared_exts if static else shared_exts
-    search_dirs = lib_dirs if lib_dirs else [""]
-
-    for lib in libs:
-        found = None
-        for directory in search_dirs:
-            prefix = lib_prefix + lib
-            for ext in extensions:
-                relative = prefix + ext
-                candidate = paths.normalize(paths.join(directory, relative)) if directory else relative
-                match = _first_match(dir_info, candidate)
-                if match:
-                    found = match
-                    break
-            if found:
-                break
-        if found:
-            entries.append(struct(file = found, unresolved = None))
-        else:
-            entries.append(struct(file = None, unresolved = lib))
-
-    return entries
-
-def _library_extensions(ctx):
-    if ctx.target_platform_has_constraint(ctx.attr._macos[platform_common.ConstraintValueInfo]):
-        return struct(shared_exts = [".*.dylib", ".dylib"], static_exts = [".a"], lib_prefix = "lib")
-    if ctx.target_platform_has_constraint(ctx.attr._windows[platform_common.ConstraintValueInfo]):
-        return struct(shared_exts = [".dll", ".dll.a"], static_exts = [".lib"], lib_prefix = "")
-    return struct(shared_exts = [".so.*", ".so"], static_exts = [".a"], lib_prefix = "lib")
-
 def _pkg_config_import_impl(ctx):
     env_info = ctx.attr.environment[EnvironmentInfo]
     dir_info = env_info.files
     env_root = dir_info.path
 
     expanded_cflag_flags = [_expand_placeholder(flag, env_root) for flag in ctx.attr.cflags]
-    expanded_lib_flags = [_expand_placeholder(flag, env_root) for flag in ctx.attr.libs]
-
     cflags = _parse_cflags(expanded_cflag_flags)
-    libs = _parse_libs(expanded_lib_flags)
+    link_entries = ctx.attr.link_entries
 
     header_sets = []
     include_paths = []
@@ -139,23 +97,6 @@ def _pkg_config_import_impl(ctx):
 
     system_includes = depset(include_paths)
     defines = depset(cflags.defines)
-
-    lib_dirs_rel = []
-    for lib_dir in libs.lib_dirs:
-        rel = _relativize_to_env(lib_dir, env_root)
-        if rel != None:
-            lib_dirs_rel.append(rel)
-
-    extensions = _library_extensions(ctx)
-    library_entries = _resolve_library_files(
-        dir_info,
-        lib_dirs_rel,
-        libs.libs,
-        ctx.attr.static,
-        extensions.shared_exts,
-        extensions.static_exts,
-        extensions.lib_prefix,
-    )
 
     cc_toolchain = find_cc_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
@@ -179,45 +120,56 @@ def _pkg_config_import_impl(ctx):
     for flag in cflags.others:
         _add_flag_input(flag)
 
-    entry_index = 0
-    entry_count = len(library_entries)
-    for flag in expanded_lib_flags:
-        if flag.startswith("-L"):
-            continue
-        if flag.startswith("-l"):
-            if entry_index >= entry_count:
-                fail("No resolution entry found for flag `{}`".format(flag))
-            entry = library_entries[entry_index]
-            entry_index += 1
-            if entry.file:
-                if ctx.attr.static:
-                    library_to_link = cc_common.create_library_to_link(
-                        actions = ctx.actions,
-                        cc_toolchain = cc_toolchain,
-                        feature_configuration = feature_configuration,
-                        static_library = entry.file,
-                    )
-                else:
-                    library_to_link = cc_common.create_library_to_link(
-                        actions = ctx.actions,
-                        cc_toolchain = cc_toolchain,
-                        feature_configuration = feature_configuration,
-                        dynamic_library = entry.file,
-                    )
-                linker_inputs.append(
-                    cc_common.create_linker_input(
-                        owner = ctx.label,
-                        libraries = depset([library_to_link]),
-                        user_link_flags = depset(),
-                    ),
-                )
-            else:
-                _add_flag_input(flag)
+    for entry_str in link_entries:
+        entry = _decode_link_entry(entry_str)
+        kind = entry.type
+        if kind == "flag":
+            _add_flag_input(_expand_placeholder(entry.value, env_root))
+        elif kind == "static":
+            path = entry.path
+            file = dir_info.get_file(path)
+            if file == None:
+                fail("Could not find static library `{}` within environment".format(path))
+            library_to_link = cc_common.create_library_to_link(
+                actions = ctx.actions,
+                cc_toolchain = cc_toolchain,
+                feature_configuration = feature_configuration,
+                static_library = file,
+            )
+            linker_inputs.append(
+                cc_common.create_linker_input(
+                    owner = ctx.label,
+                    libraries = depset([library_to_link]),
+                    user_link_flags = depset(),
+                ),
+            )
+        elif kind == "dynamic":
+            library_path = entry.library
+            dynamic_file = dir_info.get_file(library_path)
+            if dynamic_file == None:
+                fail("Could not find dynamic library `{}` within environment".format(library_path))
+            interface_path = entry.interface
+            interface_file = None
+            if interface_path not in ["", None]:
+                interface_file = dir_info.get_file(interface_path)
+                if interface_file == None:
+                    fail("Could not find interface library `{}` within environment".format(interface_path))
+            library_to_link = cc_common.create_library_to_link(
+                actions = ctx.actions,
+                cc_toolchain = cc_toolchain,
+                feature_configuration = feature_configuration,
+                dynamic_library = dynamic_file,
+                interface_library = interface_file,
+            )
+            linker_inputs.append(
+                cc_common.create_linker_input(
+                    owner = ctx.label,
+                    libraries = depset([library_to_link]),
+                    user_link_flags = depset(),
+                ),
+            )
         else:
-            _add_flag_input(flag)
-
-    if entry_index != entry_count:
-        fail("Unconsumed library resolution entries remain; pkg-config flag parsing is inconsistent")
+            fail("Unknown link entry type `{}` in {}".format(kind, ctx.label))
 
     compilation_context = cc_common.create_compilation_context(
         headers = depset(transitive = header_sets),
@@ -253,10 +205,7 @@ pkg_config_import = rule(
         "environment": attr.label(mandatory = True, providers = [EnvironmentInfo]),
         "deps": attr.label_list(providers = [CcInfo], default = []),
         "cflags": attr.string_list(),
-        "libs": attr.string_list(),
-        "static": attr.bool(default = False),
-        "_macos": attr.label(default = "@platforms//os:macos"),
-        "_windows": attr.label(default = "@platforms//os:windows"),
+        "link_entries": attr.string_list(),
     },
     provides = [CcInfo],
     doc = "Creates a CcInfo provider based on pkg-config metadata.",
