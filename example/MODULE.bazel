@@ -18,8 +18,8 @@ conda.environment(
     lockfile = "//:conda.lock",
 )
 conda.environment(
-    name = "python-linux-aarch64",
-    environment = "python",
+    name = "zlib-linux-aarch64",
+    environment = "zlib",
     lockfile = "//:conda.lock",
     platform = "linux-aarch64",
 )
@@ -29,7 +29,7 @@ use_repo(conda, "python")
 use_repo(conda, "zlib")
 
 # Specific platform repos
-use_repo(conda, "python-linux-aarch64")
+use_repo(conda, "zlib-linux-aarch64")
 
 # Register the python toolchain
 register_toolchains("//python_toolchain")
