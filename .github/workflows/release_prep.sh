@@ -6,10 +6,10 @@ TAG="$1"
 VERSION="${TAG#v}"
 PREFIX="rules_conda-${VERSION}"
 ARCHIVE="rules_conda-$TAG.tar.gz"
-git archive --format=tar --prefix=${PREFIX}/ ${TAG} | gzip > $ARCHIVE
+git archive --format=tar --prefix=${PREFIX}/ ${TAG} | gzip >$ARCHIVE
 SHA=$(shasum -a 256 $ARCHIVE | awk '{print $1}')
 
-cat << EOF
+cat <<EOF
 ## Using Bzlmod
 
 Paste this snippet into your \`MODULE.bazel\` file:
