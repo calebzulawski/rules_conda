@@ -1,12 +1,12 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 exports_files(
-    ["module.bzl"],
+    ["extensions.bzl"],
     visibility = ["//visibility:public"],
 )
 
 bzl_library(
-    name = "module",
-    srcs = ["module.bzl"],
+    name = "extensions",
+    srcs = ["extensions.bzl"],
     visibility = ["//visibility:public"],
 )

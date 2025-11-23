@@ -30,7 +30,7 @@ lock_environments(
 
 In `MODULE.bazel`, load the environment:
 ```starlark
-conda = use_extension("@rules_conda//conda/extensions:module.bzl", "conda")
+conda = use_extension("@rules_conda//conda:extensions.bzl", "conda")
 conda.environment(name = "my-environment", lockfile = "//:conda.lock")
 use_repo(conda, "my-environment")
 ```
