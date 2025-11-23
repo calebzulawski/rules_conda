@@ -1,0 +1,15 @@
+{
+  "homepage": "https://github.com/calebzulawski/rules_conda",
+  "maintainers": [
+    {
+      "name": "Caleb Zulawski",
+      "email": "caleb.zulawski@gmail.com",
+      "github": "calebzulawski"
+    }
+  ],
+  "repository": [
+    "github:calebzulawski/rules_conda"
+  ],
+  "versions": [],
+  "yanked_versions": {}
+}
