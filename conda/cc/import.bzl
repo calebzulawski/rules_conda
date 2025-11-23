@@ -52,11 +52,11 @@ def _import_library(ctx):
         include_dir = "include"
 
     # Collect package dependencies
-    packages = set()
+    packages = {}
     for package in ctx.attr.packages:
-        packages.add(package)
+        packages[package] = ()
         for dep in dependent_packages(env_info, package):
-            packages.add(dep)
+            packages[dep] = ()
 
     # Check library paths and packages
     for library in [ctx.attr.interface_library, ctx.attr.pic_static_library, ctx.attr.static_library, ctx.attr.shared_library]:

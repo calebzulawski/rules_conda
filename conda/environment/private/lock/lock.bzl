@@ -3,9 +3,6 @@
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
-def _location(ctx, target):
-    return ctx.expand_location('"$(rlocation $(rlocationpath {}))"'.format(target.label), targets = [target])
-
 def _lockfile_impl(ctx):
     script = ctx.actions.declare_file(ctx.attr.name)
     overrides = []
@@ -20,10 +17,10 @@ def _lockfile_impl(ctx):
         output = script,
         substitutions = {
             "${OVERRIDES}": "\n".join(overrides),
-            "${LOCK}": _location(ctx, ctx.attr._lock_script),
+            "${LOCK}": ctx.executable._lock_script.short_path,
             "${MODE}": ctx.attr.mode,
-            "${LOCKFILE}": _location(ctx, ctx.attr.lockfile),
-            "${ENVIRONMENTS}": " ".join([_location(ctx, env) for env in ctx.attr.environments]),
+            "${LOCKFILE}": ctx.file.lockfile.short_path,
+            "${ENVIRONMENTS}": " ".join([env.short_path for env in ctx.files.environments]),
         },
         is_executable = True,
     )
