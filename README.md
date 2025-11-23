@@ -34,9 +34,3 @@ conda = use_extension("@rules_conda//conda:extensions.bzl", "conda")
 conda.environment(name = "my-environment", lockfile = "//:conda.lock")
 use_repo(conda, "my-environment")
 ```
-
-## Documentation
-
-For documentation, see the [`docs`](docs/) directory.
-
-Alternatively, see an [example](example/).
