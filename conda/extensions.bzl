@@ -152,7 +152,7 @@ def _conda(ctx):
             locked = _parse_lockfile(ctx, cfg.lockfile)
 
             if env not in locked:
-                fail("couldn't find environment `{}`", env)
+                fail("couldn't find environment `{}`".format(env))
 
             if platform not in locked[env]:
                 # TODO make this error delayed

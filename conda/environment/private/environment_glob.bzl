@@ -15,7 +15,7 @@ def _environment_glob(ctx):
 
     if len(ctx.attr.packages) > 0:
         files = get_files_provided_by(info, ctx.attr.packages, ctx.attr.include_package_dependencies)
-        files = set(files.to_list())
+        files = {f: () for f in files.to_list()}
         srcs = depset([f for f in srcs.to_list() if f in files])
         data = depset([f for f in data.to_list() if f in files])
 
