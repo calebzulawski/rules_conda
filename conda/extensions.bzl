@@ -75,6 +75,16 @@ _download = repository_rule(
     },
 )
 
+def _delayed_error_impl(rctx):
+    fail(rctx.attr.message)
+
+_delayed_error = repository_rule(
+    implementation = _delayed_error_impl,
+    attrs = {
+        "message": attr.string(),
+    },
+)
+
 def _install_impl(rctx):
     args = []
     for name, label in rctx.attr.packages.items():
@@ -152,11 +162,15 @@ def _conda(ctx):
             locked = _parse_lockfile(ctx, cfg.lockfile)
 
             if env not in locked:
-                fail("couldn't find environment `{}`".format(env))
-
-            if platform not in locked[env]:
-                # TODO make this error delayed
-                fail("environment `{}` isn't locked for platform `{}`", env, platform)
+                _delayed_error(
+                    name = cfg.name,
+                    message = "couldn't find environment `{}`".format(env),
+                )
+            elif platform not in locked[env]:
+                _delayed_error(
+                    name = cfg.name,
+                    message = "environment `{}` isn't locked for platform `{}`".format(env, platform),
+                )
             else:
                 packages = locked[env][platform]
                 used_packages.extend(packages)
