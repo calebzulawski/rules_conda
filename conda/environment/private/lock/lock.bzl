@@ -1,30 +1,42 @@
 """ Rules for creating lockfiles. """
 
-load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
-load("@rules_shell//shell:sh_test.bzl", "sh_test")
+def _location(ctx, target):
+    return ctx.expand_location("$(rlocationpath {})".format(target.label), targets = [target])
 
 def _lockfile_impl(ctx):
-    script = ctx.actions.declare_file(ctx.attr.name)
-    overrides = []
-    if ctx.attr.cuda_version:
-        overrides.append("export CONDA_OVERRIDE_CUDA={}".format(ctx.attr.cuda_version))
-    if ctx.attr.macos_version:
-        overrides.append("export CONDA_OVERRIDE_OSX={}".format(ctx.attr.macos_version))
-    if ctx.attr.glibc_version:
-        overrides.append("export CONDA_OVERRIDE_GLIBC={}".format(ctx.attr.glibc_version))
-    ctx.actions.expand_template(
-        template = ctx.file._template,
-        output = script,
-        substitutions = {
-            "${OVERRIDES}": "\n".join(overrides),
-            "${LOCK}": ctx.executable._lock_script.short_path,
-            "${MODE}": ctx.attr.mode,
-            "${LOCKFILE}": ctx.file.lockfile.short_path,
-            "${ENVIRONMENTS}": " ".join([env.short_path for env in ctx.files.environments]),
-        },
-        is_executable = True,
+    config = ctx.actions.declare_file(ctx.attr.name + ".config.json")
+    ctx.actions.write(
+        output = config,
+        content = json.encode({
+            "lockfile": _location(ctx, ctx.attr.lockfile),
+            "environments": [_location(ctx, env) for env in ctx.attr.environments],
+            "overrides": {
+                "cuda_version": ctx.attr.cuda_version,
+                "macos_version": ctx.attr.macos_version,
+                "glibc_version": ctx.attr.glibc_version,
+            },
+        }),
     )
-    return DefaultInfo(files = depset([script]))
+    outputs = [config]
+    for mode in ["update", "test"]:
+        runner = ctx.actions.declare_file("{}.{}.py".format(ctx.attr.name, mode))
+        ctx.actions.write(
+            output = runner,
+            content = """from conda.environment.private.lock import lock
+
+if __name__ == "__main__":
+    lock.run_config("{config}", "{mode}")
+""".format(
+                config = config.short_path,
+                mode = mode,
+            ),
+            is_executable = True,
+        )
+        outputs.append(runner)
+    return DefaultInfo(
+        files = depset(outputs),
+        runfiles = ctx.runfiles(files = [config]),
+    )
 
 _lockfile = rule(
     implementation = _lockfile_impl,
@@ -34,10 +46,6 @@ _lockfile = rule(
         "cuda_version": attr.string(),
         "macos_version": attr.string(),
         "glibc_version": attr.string(),
-        "mode": attr.string(),
-        "_template": attr.label(default = "//conda/environment/private/lock:lock.sh", allow_single_file = True),
-        "_lock_script": attr.label(default = "//conda/environment/private/lock", executable = True, cfg = "exec"),
-        "_runfiles": attr.label(default = "@bazel_tools//tools/bash/runfiles"),
     },
 )
 
@@ -70,36 +78,28 @@ def lock_environments(
       **kwargs: additional arguments passed to .test
     """
     _lockfile(
-        name = name + ".impl.update",
+        name = name + ".impl",
         lockfile = lockfile,
-        mode = "update",
         environments = environments,
         cuda_version = cuda_version,
         macos_version = macos_version,
         glibc_version = glibc_version,
     )
-    _lockfile(
-        name = name + ".impl.test",
-        lockfile = lockfile,
-        mode = "test",
-        environments = environments,
-        cuda_version = cuda_version,
-        macos_version = macos_version,
-        glibc_version = glibc_version,
-    )
-    sh_binary(
+    native.py_binary(
         name = name + ".update",
-        srcs = [name + ".impl.update"],
-        deps = ["@bazel_tools//tools/bash/runfiles"],
-        data = [lockfile, Label("//conda/environment/private/lock")] + environments,
+        srcs = [name + ".impl"],
+        main = name + ".impl.update.py",
+        deps = [Label("//conda/environment/private/lock:lock_lib")],
+        data = [lockfile] + environments,
         visibility = visibility,
         tags = tags,
     )
-    sh_test(
+    native.py_test(
         name = name + ".test",
-        srcs = [name + ".impl.test"],
-        deps = ["@bazel_tools//tools/bash/runfiles"],
-        data = [lockfile, Label("//conda/environment/private/lock")] + environments,
+        srcs = [name + ".impl"],
+        main = name + ".impl.test.py",
+        deps = [Label("//conda/environment/private/lock:lock_lib")],
+        data = [lockfile] + environments,
         visibility = visibility,
         tags = tags,
         **kwargs
