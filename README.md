@@ -20,7 +20,7 @@ platforms:
 Compile a lockfile by adding the following target and running `bazel run lockfile.update`:
 
 ```starlark
-load("@rules_conda//conda/lock:lockfile.bzl", "lock_environments")
+load("@rules_conda//conda/environment:defs.bzl", "lock_environments")
 
 lock_environments(
     name = "lockfile",
