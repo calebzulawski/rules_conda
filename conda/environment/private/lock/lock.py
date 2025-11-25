@@ -8,7 +8,7 @@ import tempfile
 
 import rattler
 import yaml
-from bazel_tools.tools.python.runfiles import runfiles
+from python.runfiles import runfiles
 
 
 def virtual_packages(platform, overrides):
