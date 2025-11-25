@@ -5,7 +5,7 @@ py_library(
     srcs = ["lock.py"],
     visibility = ["//visibility:public"],
     deps = [
-        "@bazel_tools//tools/python/runfiles",
+        "@rules_python//python/runfiles",
         requirement("py-rattler"),
         requirement("pyyaml"),
     ],

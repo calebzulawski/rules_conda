@@ -1,4 +1,4 @@
-load("@aspect_bazel_lib//:bzl_library.bzl", "bzl_library")
+load("@bazel_lib//:bzl_library.bzl", "bzl_library")
 
 exports_files(
     glob(["*.bzl"]),
@@ -15,6 +15,5 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         "//conda/environment:providers",
-        "@rules_shell//shell:rules_bzl",
     ],
 )
