@@ -9,4 +9,5 @@ bzl_library(
     name = "extensions",
     srcs = ["extensions.bzl"],
     visibility = ["//visibility:public"],
+    deps = ["@bazel_tools//tools/build_defs/repo:utils.bzl"],
 )

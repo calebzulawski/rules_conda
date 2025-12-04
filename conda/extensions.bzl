@@ -1,5 +1,7 @@
 """ Module extensions for loading Conda environments. """
 
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "read_user_netrc", "use_netrc")
+
 def _run_python(rctx, args):
     "Run Python in a repository_rule context with rattler"
     path = "bin/python3"
@@ -40,7 +42,17 @@ def _package_repo_name(filename, subdir):
     return subdir + "-" + filename
 
 def _download_impl(rctx):
-    rctx.download(rctx.attr.url, sha256 = rctx.attr.sha256, output = rctx.attr.subdir + "/" + rctx.attr.filename)
+    if "NETRC" in rctx.os.environ:
+        if hasattr(rctx, "getenv"):
+            netrc = read_netrc(rctx, rctx.getenv("NETRC"))
+        else:
+            netrc = read_netrc(rctx, rctx.os.environ["NETRC"])
+    else:
+        netrc = read_user_netrc(rctx)
+
+    # TODO support auth patterns, but basic auth is usually enough for conda
+    auth = use_netrc(netrc, [rctx.attr.url], {})
+    rctx.download(rctx.attr.url, sha256 = rctx.attr.sha256, output = rctx.attr.subdir + "/" + rctx.attr.filename, auth = auth)
     rctx.file("BUILD")
 
 def _host_platform(mctx):
