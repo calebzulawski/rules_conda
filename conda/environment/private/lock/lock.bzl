@@ -4,17 +4,19 @@ def _location(ctx, target):
     return ctx.expand_location("$(rlocationpath {})".format(target.label), targets = [target])
 
 def _lockfile_impl(ctx):
+    overrides = {}
+    for override in ["cuda_version", "macos_version", "glibc_version"]:
+        value = getattr(ctx.attr, override)
+        if value:
+            overrides[override] = value
+
     config = ctx.actions.declare_file(ctx.attr.name + ".config.json")
     ctx.actions.write(
         output = config,
         content = json.encode({
             "lockfile": _location(ctx, ctx.attr.lockfile),
             "environments": [_location(ctx, env) for env in ctx.attr.environments],
-            "overrides": {
-                "cuda_version": ctx.attr.cuda_version,
-                "macos_version": ctx.attr.macos_version,
-                "glibc_version": ctx.attr.glibc_version,
-            },
+            "overrides": overrides,
         }),
     )
     outputs = [config]

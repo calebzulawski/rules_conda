@@ -7,7 +7,7 @@ def _run_python(rctx, args):
         path = "python.exe"
     return rctx.execute(
         [Label("@python_3_11_host//:" + path)] + args,
-        environment = {"PYTHONPATH": str(rctx.path(Label("@pypi_311_py_rattler//:site-packages")))},
+        environment = {"PYTHONPATH": str(rctx.path(Label("@rules_conda_pypi_311_py_rattler//:site-packages")))},
     )
 
 def _check_result(result, error):
