@@ -1,4 +1,4 @@
-load("@pypi//:requirements.bzl", "requirement")
+load("@rules_conda_pypi//:requirements.bzl", "requirement")
 
 py_library(
     name = "lock_lib",
