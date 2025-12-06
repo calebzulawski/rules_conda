@@ -1,0 +1,8 @@
+build:incompatible \
+  --incompatible_config_setting_private_default_visibility \
+  --incompatible_disable_starlark_host_transitions \
+  --incompatible_disable_native_repo_rules \
+  --incompatible_strict_action_env \
+  --incompatible_autoload_externally=
+
+build --enable_runfiles

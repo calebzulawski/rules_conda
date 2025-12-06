@@ -1,4 +1,5 @@
 load("@rules_conda//conda/environment:defs.bzl", "run_binary")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
 run_binary(
     name = "python",
