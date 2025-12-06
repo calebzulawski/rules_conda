@@ -3,6 +3,7 @@ module(name = "test")
 bazel_dep(name = "rules_conda")
 bazel_dep(name = "rules_shell", version = "0.6.1")
 bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_python", version = "1.7.0")
 
 local_path_override(
     module_name = "rules_conda",

@@ -12,6 +12,7 @@ bzl_library(
     deps = [
         "providers",
         "//conda/environment/private",
+        "@rules_python//python:defs_bzl",
     ],
 )
 

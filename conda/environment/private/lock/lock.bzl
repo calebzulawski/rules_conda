@@ -1,5 +1,8 @@
 """ Rules for creating lockfiles. """
 
+load("@rules_python//python:py_binary.bzl", "py_binary")
+load("@rules_python//python:py_test.bzl", "py_test")
+
 def _location(ctx, target):
     return ctx.expand_location("$(rlocationpath {})".format(target.label), targets = [target])
 
@@ -87,7 +90,7 @@ def lock_environments(
         macos_version = macos_version,
         glibc_version = glibc_version,
     )
-    native.py_binary(
+    py_binary(
         name = name + ".update",
         srcs = [name + ".impl"],
         main = name + ".impl.update.py",
@@ -96,7 +99,7 @@ def lock_environments(
         visibility = visibility,
         tags = tags,
     )
-    native.py_test(
+    py_test(
         name = name + ".test",
         srcs = [name + ".impl"],
         main = name + ".impl.test.py",
