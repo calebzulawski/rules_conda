@@ -15,7 +15,13 @@ paths = dict(zip(sys.argv[5::2], sys.argv[6::2]))
 
 lock = LockFile.from_path(lock_path)
 environment = lock.environment(name)
+if environment is None:
+    sys.exit(f"Environment `{name}` doesn't exist in lockfile `{lock_path}`")
 records = environment.conda_repodata_records_for_platform(platform)
+if records is None:
+    sys.exit(
+        f"Environment `{name}` in lockfile `{lock_path}` doesn't contain platform `{platform}`"
+    )
 records = [
     RepoDataRecord(r, r.file_name, f"file://{paths[r.file_name]}", r.channel)
     for r in records

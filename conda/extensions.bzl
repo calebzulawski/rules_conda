@@ -17,12 +17,12 @@ def _check_result(result, error):
     if result.return_code != 0:
         fail("{}\n{}".format(result.stderr, error))
 
-def _parse_lockfile(mctx, lockfile):
+def _parse_lockfile(mctx, lockfile, env, platform):
     "Parse a conda lockfile and return the contained environments"
     mctx.watch(lockfile)
     parse_lockfile = Label("//conda/extensions/private:parse_lockfile.py")
     mctx.watch(parse_lockfile)
-    result = _run_python(mctx, [parse_lockfile, lockfile, "environments.json"])
+    result = _run_python(mctx, [parse_lockfile, lockfile, env, platform, "environments.json"])
     _check_result(result, "couldn't parse lockfile {}".format(lockfile))
     return json.decode(mctx.read("environments.json"))
 
@@ -41,7 +41,7 @@ def _package_repo_name(filename, subdir):
     "Create a valid repository name for a conda package"
     return subdir + "-" + filename
 
-def _download_impl(rctx):
+def _auth(rctx, url):
     if "NETRC" in rctx.os.environ:
         if hasattr(rctx, "getenv"):
             netrc = read_netrc(rctx, rctx.getenv("NETRC"))
@@ -51,7 +51,10 @@ def _download_impl(rctx):
         netrc = read_user_netrc(rctx)
 
     # TODO support auth patterns, but basic auth is usually enough for conda
-    auth = use_netrc(netrc, [rctx.attr.url], {})
+    return use_netrc(netrc, [url], {})
+
+def _download_impl(rctx):
+    auth = _auth(rctx, rctx.attr.url)
     rctx.download(rctx.attr.url, sha256 = rctx.attr.sha256, output = rctx.attr.subdir + "/" + rctx.attr.filename, auth = auth)
     rctx.file("BUILD")
 
@@ -90,17 +93,21 @@ _download = repository_rule(
 def _delayed_error_impl(rctx):
     fail(rctx.attr.message)
 
-_delayed_error = repository_rule(
-    implementation = _delayed_error_impl,
-    attrs = {
-        "message": attr.string(),
-    },
-)
-
 def _install_impl(rctx):
     args = []
-    for name, label in rctx.attr.packages.items():
-        args += [name, rctx.path(label)]
+    if len(rctx.attr.packages) != 0:
+        for name, label in rctx.attr.packages.items():
+            args += [name, rctx.path(label)]
+    else:
+        locked_packages = _parse_lockfile(rctx, rctx.attr.lockfile, rctx.attr.environment_name, rctx.attr.platform)
+        download = []
+        for p in locked_packages:
+            path = "rules_conda_download/{}/{}".format(p["subdir"], p["filename"])
+            auth = _auth(rctx, p["url"])
+            download.append(rctx.download(p["url"], sha256 = p["sha256"], output = path, auth = auth, block = False))
+            args += [p["filename"], rctx.path(path)]
+        for d in download:
+            d.wait()
 
     install = Label("//conda/extensions/private:install.py")
     template = Label("//conda/extensions/private:template.BUILD")
@@ -140,6 +147,8 @@ _environment = tag_class(
         "execute_link_scripts": attr.bool(default = False, doc = "Execute link scripts when installing the environment. Only applies to the host platform."),
         "platform": attr.string(doc = "The platform to create an environment for. Defaults to the host platform."),
         "environment": attr.string(doc = "The environment to create. Defaults to `name`."),
+        "deduplicate_downloads": attr.bool(doc = "Allow this environment to participate in package download deduplication. " +
+                                                 "For very large environments or an excessive number of environments, this option can increase the initialization time of this module extension.", default = True),
     },
     doc = "Create a Conda environment",
 )
@@ -171,32 +180,22 @@ def _conda(ctx):
             if cfg.execute_link_scripts and cfg.platform != "":
                 fail("`execute_link_scripts` must be False when `platform` is specified")
 
-            locked = _parse_lockfile(ctx, cfg.lockfile)
-
-            if env not in locked:
-                _delayed_error(
-                    name = cfg.name,
-                    message = "couldn't find environment `{}`".format(env),
-                )
-            elif platform not in locked[env]:
-                _delayed_error(
-                    name = cfg.name,
-                    message = "environment `{}` isn't locked for platform `{}`".format(env, platform),
-                )
-            else:
-                packages = locked[env][platform]
-                used_packages.extend(packages)
-                _install(
-                    name = cfg.name,
-                    environment_name = env,
-                    platform = platform,
-                    lockfile = cfg.lockfile,
-                    packages = {
-                        p["filename"]: "@{}//:{}/{}".format(_package_repo_name(p["filename"], p["subdir"]), p["subdir"], p["filename"])
-                        for p in packages
-                    },
-                    execute_link_scripts = cfg.execute_link_scripts,
-                )
+            packages = {}
+            if cfg.deduplicate_downloads:
+                locked_packages = _parse_lockfile(ctx, cfg.lockfile, env, platform)
+                used_packages.extend(locked_packages)
+                packages = {
+                    p["filename"]: "@{}//:{}/{}".format(_package_repo_name(p["filename"], p["subdir"]), p["subdir"], p["filename"])
+                    for p in locked_packages
+                }
+            _install(
+                name = cfg.name,
+                environment_name = env,
+                platform = platform,
+                lockfile = cfg.lockfile,
+                packages = packages,
+                execute_link_scripts = cfg.execute_link_scripts,
+            )
 
     # Download all packages used across environments
     for package in _unique_packages(used_packages):
