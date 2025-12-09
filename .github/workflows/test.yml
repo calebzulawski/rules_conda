@@ -21,7 +21,7 @@ jobs:
           - ubuntu-24.04
           - windows-2022
           - ubuntu-24.04-arm
-          - macos-13
+          - macos-15-intel
           - macos-15
         bazel-version:
           - null
