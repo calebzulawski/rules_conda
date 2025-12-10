@@ -4,7 +4,9 @@ load("//conda/environment:providers.bzl", "EnvironmentInfo", "get_files_provided
 def _is_windows(ctx):
     return ctx.configuration.host_path_separator == ";"
 
-def _default_search_paths(ctx):
+def _search_paths(ctx):
+    if len(ctx.attr.search_paths) > 0:
+        return ctx.attr.search_paths
     if _is_windows(ctx):
         return [
             ".",
@@ -25,7 +27,7 @@ def _get_file_if_exists(info, path):
     return matches[0]
 
 def _find_executable(ctx, info, executable):
-    search_paths = ctx.attr.search_paths if len(ctx.attr.search_paths) > 0 else _default_search_paths(ctx)
+    search_paths = _search_paths(ctx)
     for directory in search_paths:
         candidate = paths.join(directory, executable)
         candidate = candidate.lstrip("./").lstrip("/")
@@ -37,6 +39,29 @@ def _find_executable(ctx, info, executable):
         exe = executable,
         paths = ", ".join(search_paths),
     ))
+
+def _write_windows_wrapper(ctx, info, file):
+    def _map_path_to_runfiles(p):
+        return "%CD%\\..\\" + p.removeprefix("external/").replace("/", "\\")
+
+    search_paths = _search_paths(ctx)
+
+    script = """\
+@echo off
+set PATH={paths};%PATH%
+"{target}" %*
+""".format(
+        paths = ";".join([_map_path_to_runfiles(paths.normalize(paths.join(info.files.path, p))) for p in search_paths]),
+        target = _map_path_to_runfiles(file.path),
+    )
+
+    exe = ctx.actions.declare_file(ctx.label.name + ".bat")
+    ctx.actions.write(
+        output = exe,
+        content = script,
+        is_executable = True,
+    )
+    return exe
 
 def _run_binary(ctx):
     info = ctx.attr.environment[EnvironmentInfo]
@@ -59,14 +84,7 @@ def _run_binary(ctx):
     package = what_provides(info, relative_path)
     files = get_files_provided_by(info, package)
     if _is_windows(ctx):
-        exe = ctx.actions.declare_file(ctx.label.name + ".bat")
-        target_path = file.path.removeprefix("external/").replace("/", "\\")
-        script = '@echo off\r\n"../{target}" %*\r\n'.format(target = target_path)
-        ctx.actions.write(
-            output = exe,
-            content = script,
-            is_executable = True,
-        )
+        exe = _write_windows_wrapper(ctx, info, file)
     else:
         exe = ctx.actions.declare_file(ctx.attr.name)
         ctx.actions.symlink(output = exe, target_file = file, is_executable = True)
