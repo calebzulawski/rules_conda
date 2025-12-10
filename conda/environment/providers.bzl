@@ -50,15 +50,14 @@ def get_files_provided_by(environment_info, package_name, include_dependencies =
         if len(packages_remaining) == 0:
             break
 
-        package = packages_remaining[-1]
+        package = packages_remaining.pop()
+        packages_searched.append(package)
+        files.extend(environment_info.metadata[package]["files"])
 
         if include_dependencies:
             for d in dependent_packages(environment_info, package):
                 if d not in packages_remaining and d not in packages_searched:
                     packages_remaining.append(d)
-
-        files.extend(environment_info.metadata[package]["files"])
-        packages_searched.append(packages_remaining.pop())
 
     return environment_info.files.glob(include = files, exclude = [], allow_empty = True)
 
