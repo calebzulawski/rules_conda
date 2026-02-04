@@ -23,7 +23,7 @@ def _lockfile_impl(ctx):
         }),
     )
     outputs = [config]
-    for mode in ["update", "test"]:
+    for mode in ["update", "upgrade", "test"]:
         runner = ctx.actions.declare_file("{}.{}.py".format(ctx.attr.name, mode))
         ctx.actions.write(
             output = runner,
@@ -67,8 +67,9 @@ def lock_environments(
     """
     Lock Conda environments.
 
-    Creates two targets:
+    Creates three targets:
     * `bazel run [name].update` to update the lockfile
+    * `bazel run [name].upgrade -- [package1] [package2] ...` to upgrade specific packages (or all if none specified)
     * `bazel test [name].test` to ensure the lockfile is up-to-date
 
     Args:
@@ -94,6 +95,15 @@ def lock_environments(
         name = name + ".update",
         srcs = [name + ".impl"],
         main = name + ".impl.update.py",
+        deps = [Label("//conda/environment/private/lock:lock_lib")],
+        data = [lockfile] + environments,
+        visibility = visibility,
+        tags = tags,
+    )
+    py_binary(
+        name = name + ".upgrade",
+        srcs = [name + ".impl"],
+        main = name + ".impl.upgrade.py",
         deps = [Label("//conda/environment/private/lock:lock_lib")],
         data = [lockfile] + environments,
         visibility = visibility,
