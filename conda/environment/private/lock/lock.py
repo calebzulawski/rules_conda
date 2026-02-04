@@ -35,6 +35,28 @@ def virtual_packages(platform, overrides):
     return packages
 
 
+def get_locked_packages_for_platform(locked_envs, env_name, platform, channels):
+    if env_name not in locked_envs:
+        return []
+
+    locked_env = locked_envs[env_name]
+    if platform not in [str(p) for p in locked_env.platforms()]:
+        return []
+
+    all_packages = locked_env.conda_repodata_records_for_platform(
+        rattler.Platform(platform)
+    )
+
+    # only keep packages from channels that are present in the environment spec
+    # env.yaml might use a name (e.g. "conda-forge") but lockfiles always use the full url
+    allowed_channels = {str(rattler.Channel(c).base_url) for c in channels}
+    return [
+        pkg
+        for pkg in all_packages
+        if str(rattler.Channel(pkg.channel).base_url) in allowed_channels
+    ]
+
+
 async def solve(lockfile_path, environment_paths, overrides):
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as cache_dir:
         client = rattler.Client.authenticated_client()
@@ -49,14 +71,12 @@ async def solve(lockfile_path, environment_paths, overrides):
         for p in environment_paths:
             with open(p) as f:
                 env = yaml.safe_load(f)
+
             for platform in env["platforms"]:
-                locked_packages = []
-                if env["name"] in locked_envs and platform in [
-                    str(p) for p in locked_envs[env["name"]].platforms()
-                ]:
-                    locked_packages = locked_envs[
-                        env["name"]
-                    ].conda_repodata_records_for_platform(rattler.Platform(platform))
+                locked_packages = get_locked_packages_for_platform(
+                    locked_envs, env["name"], platform, env["channels"]
+                )
+
                 environments.setdefault(env["name"], {})[
                     rattler.Platform(platform)
                 ] = await rattler.solve(
