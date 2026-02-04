@@ -35,13 +35,50 @@ def virtual_packages(platform, overrides):
     return packages
 
 
-async def solve(lockfile_path, environment_paths, overrides):
+def get_locked_packages_for_platform(
+    locked_envs, env_name, platform, channels, exclude_packages=None
+):
+    if env_name not in locked_envs:
+        return []
+
+    locked_env = locked_envs[env_name]
+    if platform not in [str(p) for p in locked_env.platforms()]:
+        return []
+
+    all_packages = locked_env.conda_repodata_records_for_platform(
+        rattler.Platform(platform)
+    )
+
+    # only keep packages from channels that are present in the environment spec
+    # env.yaml might use a name (e.g. "conda-forge") but lockfiles always use the full url
+    allowed_channels = {str(rattler.Channel(c).base_url) for c in channels}
+    packages = [
+        pkg
+        for pkg in all_packages
+        if str(rattler.Channel(pkg.channel).base_url) in allowed_channels
+    ]
+
+    # Filter out packages that should be upgraded
+    if exclude_packages:
+        exclude_names = {rattler.PackageName(name) for name in exclude_packages}
+        packages = [pkg for pkg in packages if pkg.name not in exclude_names]
+
+    return packages
+
+
+async def solve(
+    lockfile_path,
+    environment_paths,
+    overrides,
+    load_locked_packages=True,
+    upgrade_packages=None,
+):
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as cache_dir:
         client = rattler.Client.authenticated_client()
         gateway = rattler.Gateway(cache_dir=cache_dir, client=client)
 
         locked_envs = {}
-        if os.path.getsize(lockfile_path) != 0:
+        if load_locked_packages and os.path.getsize(lockfile_path) != 0:
             lockfile = rattler.LockFile.from_path(lockfile_path)
             locked_envs = dict(lockfile.environments())
 
@@ -49,14 +86,18 @@ async def solve(lockfile_path, environment_paths, overrides):
         for p in environment_paths:
             with open(p) as f:
                 env = yaml.safe_load(f)
+
             for platform in env["platforms"]:
                 locked_packages = []
-                if env["name"] in locked_envs and platform in [
-                    str(p) for p in locked_envs[env["name"]].platforms()
-                ]:
-                    locked_packages = locked_envs[
-                        env["name"]
-                    ].conda_repodata_records_for_platform(rattler.Platform(platform))
+                if load_locked_packages:
+                    locked_packages = get_locked_packages_for_platform(
+                        locked_envs,
+                        env["name"],
+                        platform,
+                        env["channels"],
+                        upgrade_packages,
+                    )
+
                 environments.setdefault(env["name"], {})[
                     rattler.Platform(platform)
                 ] = await rattler.solve(
@@ -70,8 +111,22 @@ async def solve(lockfile_path, environment_paths, overrides):
         return environments
 
 
-def make_lockfile(lockfile_path, environment_paths, overrides):
-    environments = asyncio.run(solve(lockfile_path, environment_paths, overrides))
+def make_lockfile(
+    lockfile_path,
+    environment_paths,
+    overrides,
+    load_locked_packages=True,
+    upgrade_packages=None,
+):
+    environments = asyncio.run(
+        solve(
+            lockfile_path,
+            environment_paths,
+            overrides,
+            load_locked_packages,
+            upgrade_packages,
+        )
+    )
 
     return rattler.LockFile(
         {
@@ -100,6 +155,17 @@ def _resolve_runfile(path, runfiles_ctx):
 
 
 def run_config(config_path, mode):
+    parser = argparse.ArgumentParser(
+        description=f"{mode.capitalize()} conda environment lockfiles"
+    )
+    if mode == "upgrade":
+        parser.add_argument(
+            "packages",
+            nargs="*",
+            help="Package names to upgrade. If none specified, all packages are upgraded.",
+        )
+    args = parser.parse_args()
+
     runfiles_ctx = runfiles.Create()
     with open(config_path) as f:
         config = json.load(f)
@@ -110,13 +176,26 @@ def run_config(config_path, mode):
     ]
     overrides = config.get("overrides", {})
     if mode == "update":
-        make_lockfile(lockfile_path, environment_paths, overrides).to_path(
-            lockfile_path
-        )
+        make_lockfile(
+            lockfile_path, environment_paths, overrides, load_locked_packages=True
+        ).to_path(lockfile_path)
+    elif mode == "upgrade":
+        # If packages specified, use lockfile and exclude those packages.
+        # If no packages specified, skip lockfile entirely (upgrade everything).
+        load_locked = bool(args.packages)
+        make_lockfile(
+            lockfile_path,
+            environment_paths,
+            overrides,
+            load_locked_packages=load_locked,
+            upgrade_packages=args.packages,
+        ).to_path(lockfile_path)
     elif mode == "test":
         # use delete=False to allow it to be opened and closed multiple times on windows
         with tempfile.NamedTemporaryFile(delete=os.name != "nt") as tmp:
-            make_lockfile(lockfile_path, environment_paths, overrides).to_path(tmp.name)
+            make_lockfile(
+                lockfile_path, environment_paths, overrides, load_locked_packages=True
+            ).to_path(tmp.name)
             with open(lockfile_path) as f:
                 actual = list(f)
             with open(tmp.name) as f:
