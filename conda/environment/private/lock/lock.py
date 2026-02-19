@@ -7,6 +7,7 @@ import sys
 import tempfile
 
 import rattler
+import rattler.exceptions
 import yaml
 from python.runfiles import runfiles
 
@@ -98,16 +99,22 @@ async def solve(
                         upgrade_packages,
                     )
 
-                environments.setdefault(env["name"], {})[
-                    rattler.Platform(platform)
-                ] = await rattler.solve(
-                    channels=env["channels"],
-                    specs=env["dependencies"],
-                    platforms=[platform, "noarch"],
-                    gateway=gateway,
-                    locked_packages=locked_packages,
-                    virtual_packages=virtual_packages(platform, overrides),
-                )
+                try:
+                    environments.setdefault(env["name"], {})[
+                        rattler.Platform(platform)
+                    ] = await rattler.solve(
+                        channels=env["channels"],
+                        specs=env["dependencies"],
+                        platforms=[platform, "noarch"],
+                        gateway=gateway,
+                        locked_packages=locked_packages,
+                        virtual_packages=virtual_packages(platform, overrides),
+                    )
+                except Exception as e:
+                    e.add_note(
+                        f"while solving environment `{env['name']}` for platform `{platform}`"
+                    )
+                    raise
         return environments
 
 
@@ -118,15 +125,21 @@ def make_lockfile(
     load_locked_packages=True,
     upgrade_packages=None,
 ):
-    environments = asyncio.run(
-        solve(
-            lockfile_path,
-            environment_paths,
-            overrides,
-            load_locked_packages,
-            upgrade_packages,
+    try:
+        environments = asyncio.run(
+            solve(
+                lockfile_path,
+                environment_paths,
+                overrides,
+                load_locked_packages,
+                upgrade_packages,
+            )
         )
-    )
+    except rattler.exceptions.SolverError as e:
+        print(f"{e}", file=sys.stderr)
+        for note in e.__notes__:
+            print(f"{note}", file=sys.stderr)
+        sys.exit(1)
 
     return rattler.LockFile(
         {
